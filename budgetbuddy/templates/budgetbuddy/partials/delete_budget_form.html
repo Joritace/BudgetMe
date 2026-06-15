@@ -1,0 +1,7 @@
+<form method="post" action="{% url 'budget_delete' %}" class="{{ form_class|default:'delete-form' }}"
+      onsubmit="return confirm('Delete your budget? All categories, transactions, and transfers will be removed. This cannot be undone.');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger {{ button_class|default:'' }}">
+        <i class="bx bx-trash"></i> {{ button_label|default:"Delete budget" }}
+    </button>
+</form>

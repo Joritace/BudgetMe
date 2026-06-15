@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-h)gcp387d%el62lhq%8_-(_3-9l%*1p2$f(2nr=5iyo_=qgsd1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 
 # Application definition
@@ -100,12 +100,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
+# Internationalization — Uganda (Kampala)
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Kampala'
 
 USE_I18N = True
 
@@ -116,3 +116,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'budgetbuddy' / 'static',
+]
+
+# BudgetMe — Uganda defaults
+BUDGETME_CURRENCY = 'UGX'
+BUDGETME_COUNTRY = 'Uganda'

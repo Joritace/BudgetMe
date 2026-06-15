@@ -1,0 +1,204 @@
+{% extends "budgetbuddy/base.html" %}
+{% load budgetbuddy_tags %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block sidebar %}
+{% include "budgetbuddy/includes/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+{% if not has_budget %}
+<header class="hero hero--empty">
+    <div class="hero-inner">
+        <div class="hero-top">
+            <div class="hero-greeting">
+                <p class="welcome-label">Hi, Welcome to BudgetMe</p>
+                <h1>{{ greeting }}</h1>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="main">
+    <section class="panel setup-cta" aria-label="Get started">
+        <div class="setup-cta-icon"><i class="bx bx-wallet" aria-hidden="true"></i></div>
+        <h2>Set up your budget</h2>
+        <p>Add your income, saving goal, and spending categories to start tracking your money in UGX.</p>
+        <a href="{% url 'budget_setup' %}" class="btn btn-primary">
+            <i class="bx bx-plus-circle"></i> Set up budget
+        </a>
+    </section>
+</main>
+
+{% else %}
+<header class="hero">
+    <div class="hero-inner">
+        <div class="hero-top">
+            <div class="hero-greeting">
+                <p class="welcome-label">Hi, Welcome Back</p>
+                <h1>{{ greeting }}, {{ first_name }}</h1>
+                <p class="income-badge">
+                    <i class="bx bx-money"></i>
+                    {{ data.currency }} {{ income_display.amount|floatformat:0 }} / {{ income_display.frequency }}
+                    <span class="income-equiv">≈ {{ data.currency }} {{ income_display.monthly_equivalent|floatformat:0 }} monthly</span>
+                </p>
+            </div>
+            <button class="notif-btn" type="button" aria-label="Notifications">
+                <i class="bx bx-bell" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="hero-body">
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="bx bx-down-arrow-alt" aria-hidden="true"></i>
+                        Total Expense
+                    </div>
+                    <p class="stat-value expense">-{{ data.currency }} {{ data.total_spent|floatformat:0 }}</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="bx bx-up-arrow-alt" aria-hidden="true"></i>
+                        Total Balance
+                    </div>
+                    <p class="stat-value balance">{{ data.currency }} {{ total_balance|floatformat:0 }}</p>
+                </div>
+                <div class="stat-card stat-card--desktop">
+                    <div class="stat-label">
+                        <i class="bx bx-pie-chart-alt-2" aria-hidden="true"></i>
+                        Budget Used
+                    </div>
+                    <p class="stat-value">{{ budget_used_percent }}%</p>
+                </div>
+            </div>
+
+            <div class="hero-illustration" aria-hidden="true">
+                <i class="bx bx-wallet hero-float hero-float--1"></i>
+                <i class="bx bx-line-chart hero-float hero-float--2"></i>
+                <i class="bx bx-mobile-alt hero-float hero-float--3"></i>
+            </div>
+        </div>
+
+        <progress class="budget-progress" value="{{ budget_used_percent }}" max="100" aria-label="Budget used"></progress>
+    </div>
+</header>
+
+<main class="main">
+    <div class="top-panels">
+        <section class="panel insights-panel" aria-label="Insights">
+            <div class="saving-goal">
+                <div class="goal-ring">
+                    <svg viewBox="0 0 80 80">
+                        <circle class="ring-bg" cx="40" cy="40" r="34"/>
+                        <circle class="ring-fill" cx="40" cy="40" r="34" stroke-dashoffset="{{ insights.ring_offset }}"/>
+                    </svg>
+                    <div class="goal-icon">
+                        <i class="bx bx-piggy-bank" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="goal-text">
+                    <p class="goal-label">Saving Goal</p>
+                    {% if insights.has_saving_goal %}
+                    <p class="goal-sub">{{ insights.saving_goal_percent }}% · UGX {{ insights.saving_goal_saved|floatformat:0 }} of {{ insights.saving_goal_target|floatformat:0 }}</p>
+                    {% else %}
+                    <p class="goal-sub"><a href="{% url 'budget_setup' %}">Set a saving goal</a> in Budget</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="insight-cards">
+                <div class="mini-insight">
+                    <div class="mini-icon"><i class="bx bx-trending-up" aria-hidden="true"></i></div>
+                    <div>
+                        <p class="mini-label">Revenue Last Week</p>
+                        <p class="mini-value positive">{{ data.currency }} {{ insights.revenue_last_week|floatformat:0 }}</p>
+                    </div>
+                </div>
+                <div class="mini-insight">
+                    <div class="mini-icon"><i class="bx bx-bowl-hot" aria-hidden="true"></i></div>
+                    <div>
+                        <p class="mini-label">Biggest Expense</p>
+                        <p class="mini-value negative">-{{ data.currency }} {{ insights.biggest_expense_amount|floatformat:0 }}</p>
+                        <p class="mini-meta">{{ insights.biggest_expense_category }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel budget-panel" aria-label="Budget categories">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title"><i class="bx bx-list-check" aria-hidden="true"></i> Monthly Budget</h2>
+                    <p class="panel-sub">{{ data.month }}</p>
+                </div>
+                <a href="{% url 'budget_setup' %}" class="btn btn-ghost btn-sm"><i class="bx bx-edit"></i> Edit</a>
+            </div>
+            <ul class="budget-list">
+                {% for item in data.overview %}
+                <li class="budget-row">
+                    <div class="budget-row-top">
+                        <span class="budget-cat">
+                            <i class="bx {{ item.category|category_icon }} budget-cat-icon" aria-hidden="true"></i>
+                            {{ item.category }}
+                        </span>
+                        <span class="budget-amount">{{ data.currency }} {{ item.spent|floatformat:0 }} / {{ item.allocated|floatformat:0 }}</span>
+                    </div>
+                    <progress class="budget-bar {% if item.usage_percent > 100 %}over{% elif item.usage_percent > 80 %}warn{% endif %}"
+                              value="{{ item.bar_percent }}" max="100"
+                              aria-label="{{ item.category }} budget usage"></progress>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+
+    <section class="panel transactions-panel" aria-label="Recent transactions">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title"><i class="bx bx-transfer-alt" aria-hidden="true"></i> Transactions</h2>
+                <p class="panel-sub">{% for key, label in period_choices.items %}{% if period == key %}{{ label }}{% endif %}{% endfor %} view</p>
+            </div>
+            <nav class="period-tabs" aria-label="Filter by period">
+                {% for key, label in period_choices.items %}
+                    <a href="?period={{ key }}"
+                       class="period-tab {% if period == key %}active{% endif %}"
+                       {% if period == key %}aria-current="page"{% endif %}>{{ label }}</a>
+                {% endfor %}
+            </nav>
+        </div>
+
+        <div class="transactions">
+            {% for txn in transactions %}
+            <article class="transaction-item">
+                <div class="txn-icon txn-icon--{{ txn.icon }}">
+                    <i class="bx {{ txn.icon|transaction_icon }}" aria-hidden="true"></i>
+                </div>
+                <div class="txn-details">
+                    <p class="txn-label">{{ txn.label }}</p>
+                    <p class="txn-time"><i class="bx bx-time-five" aria-hidden="true"></i> {{ txn.datetime|date:"H:i · F j" }}</p>
+                </div>
+                <span class="txn-type {% if txn.type == 'income' %}income{% else %}expense{% endif %}">
+                    {% if txn.type == 'income' %}<i class="bx bx-plus-circle" aria-hidden="true"></i>{% else %}<i class="bx bx-minus-circle" aria-hidden="true"></i>{% endif %}
+                    {% if txn.type == 'income' %}Income{% else %}Expense{% endif %}
+                </span>
+                <p class="txn-amount {% if txn.type == 'expense' %}negative{% else %}positive{% endif %}">
+                    {% if txn.type == 'expense' %}-{% endif %}{{ data.currency }} {{ txn.amount|floatformat:0 }}
+                </p>
+            </article>
+            {% empty %}
+            <div class="empty-state">
+                <i class="bx bx-receipt empty-icon" aria-hidden="true"></i>
+                <p>No transactions for this period.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endif %}
+{% endblock %}
+
+{% block mobile_nav %}
+{% include "budgetbuddy/includes/bottom_nav.html" %}
+{% endblock %}

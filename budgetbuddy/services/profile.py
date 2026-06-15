@@ -1,0 +1,76 @@
+"""Load and format budget profiles from the database."""
+
+from budgetbuddy.models import BudgetProfile
+from budgetbuddy.services.transactions import expenses_from_transactions, get_transactions_for_profile
+
+SESSION_PROFILE_KEY = 'budget_profile_id'
+
+
+def set_active_profile(request, profile):
+    request.session[SESSION_PROFILE_KEY] = profile.pk
+
+
+def clear_active_profile(request):
+    request.session.pop(SESSION_PROFILE_KEY, None)
+
+
+def get_active_profile(request=None, profile_id=None):
+    if profile_id is None and request is not None:
+        profile_id = request.session.get(SESSION_PROFILE_KEY)
+        if not profile_id:
+            profile_id = request.GET.get('user_id')
+        if profile_id:
+            try:
+                profile_id = int(profile_id)
+            except (ValueError, TypeError):
+                profile_id = None
+
+    if profile_id:
+        return BudgetProfile.objects.filter(pk=profile_id).first()
+    return None
+
+
+def profile_to_user_dict(profile):
+    categories = {
+        cat.name: float(cat.allocated_amount)
+        for cat in profile.categories.all()
+    }
+    monthly = float(profile.normalized_monthly_income())
+    saving_goal = float(profile.saving_goal_amount) if profile.has_saving_goal else None
+
+    return {
+        'id': profile.pk,
+        'name': profile.name,
+        'monthly_income': monthly,
+        'income_amount': float(profile.income_amount),
+        'income_frequency': profile.income_frequency,
+        'income_frequency_label': profile.income_frequency_label,
+        'saving_goal_amount': saving_goal,
+        'currency': profile.currency,
+        'budget_categories': categories,
+    }
+
+
+def get_expenses_for_profile(profile, year=None, month=None):
+    transactions = get_transactions_for_profile(profile)
+    expenses = expenses_from_transactions(transactions)
+
+    if year and month:
+        expenses = [
+            expense for expense in expenses
+            if expense['date'].year == year and expense['date'].month == month
+        ]
+
+    return expenses
+
+
+def savings_progress(profile, expenses):
+    if not profile.has_saving_goal:
+        return 0
+
+    saved = 0
+    for expense in expenses:
+        category = expense.get('category', '')
+        if 'saving' in category.lower() or 'sacco' in category.lower():
+            saved += float(expense.get('amount', 0))
+    return round(saved)

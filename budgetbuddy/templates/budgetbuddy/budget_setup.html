@@ -1,0 +1,333 @@
+{% extends "budgetbuddy/base.html" %}
+
+
+
+{% block title %}Set Up Budget{% endblock %}
+
+
+
+{% block sidebar %}
+
+{% include "budgetbuddy/partials/sidebar.html" %}
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<div class="page-inner">
+
+<header class="page-header">
+
+    <div class="page-header__text">
+
+        <h1><i class="bx bx-wallet" aria-hidden="true"></i> {% if is_new %}Set up your budget{% else %}Edit your budget{% endif %}</h1>
+
+    </div>
+
+    {% if not is_new %}
+
+    <a href="{% url 'dashboard' %}" class="btn btn-ghost btn-sm"><i class="bx bx-arrow-back"></i> Back</a>
+
+    {% endif %}
+
+</header>
+
+
+
+<main class="main page-main">
+
+    {% include "budgetbuddy/partials/messages.html" %}
+
+
+
+    <form method="post" class="setup-form">
+
+        {% csrf_token %}
+
+
+
+        <section class="panel setup-panel">
+
+            <h2 class="panel-title"><i class="bx bx-user" aria-hidden="true"></i> About you</h2>
+
+            {% if form.non_field_errors %}
+
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+
+            {% endif %}
+
+            <div class="form-group form-group--full">
+
+                <label for="{{ form.name.id_for_label }}">Your name</label>
+
+                {{ form.name }}
+
+                {{ form.name.errors }}
+
+            </div>
+
+        </section>
+
+
+
+        <section class="panel setup-panel">
+
+            <h2 class="panel-title"><i class="bx bx-money" aria-hidden="true"></i> Income</h2>
+
+            <p class="panel-sub">We convert this to a monthly figure for your budget summary.</p>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+
+                    <label for="{{ form.income_amount.id_for_label }}">{{ form.income_amount.label }}</label>
+
+                    {{ form.income_amount }}
+
+                    {{ form.income_amount.errors }}
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="{{ form.income_frequency.id_for_label }}">{{ form.income_frequency.label }}</label>
+
+                    {{ form.income_frequency }}
+
+                    {{ form.income_frequency.errors }}
+
+                </div>
+
+            </div>
+
+            {% if monthly_income_preview %}
+
+            <p class="income-cap"><i class="bx bx-info-circle"></i> Monthly income cap: UGX {{ monthly_income_preview|floatformat:0 }}</p>
+
+            {% endif %}
+
+            <ul class="hint-list">
+
+                <li><strong>Daily</strong> — multiplied by 30 for monthly budget</li>
+
+                <li><strong>Bi-weekly</strong> — 26 pay periods per year averaged monthly</li>
+
+                <li><strong>Monthly</strong> — used as-is</li>
+
+            </ul>
+
+        </section>
+
+
+
+        <section class="panel setup-panel">
+
+            <h2 class="panel-title"><i class="bx bx-piggy-bank" aria-hidden="true"></i> Saving goal</h2>
+
+            <div class="form-group">
+
+                <label for="{{ form.saving_goal_amount.id_for_label }}">{{ form.saving_goal_amount.label }}</label>
+
+                {{ form.saving_goal_amount }}
+
+                {{ form.saving_goal_amount.errors }}
+
+                <p class="field-hint">Optional. Track progress on your dashboard saving ring.</p>
+
+            </div>
+
+        </section>
+
+
+
+        <section class="panel setup-panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2 class="panel-title"><i class="bx bx-list-check" aria-hidden="true"></i> Budget categories</h2>
+
+                    <p class="panel-sub">Categories plus saving goal cannot exceed your monthly income.</p>
+
+                </div>
+
+                <button type="button" class="btn btn-ghost btn-sm" id="add-category">
+
+                    <i class="bx bx-plus"></i> Add row
+
+                </button>
+
+            </div>
+
+
+
+            {{ formset.management_form }}
+
+            {% if formset.non_form_errors %}
+
+            <div class="form-errors">{{ formset.non_form_errors }}</div>
+
+            {% endif %}
+
+
+
+            <div class="category-rows" id="category-rows">
+
+                {% for cat_form in formset %}
+
+                <div class="category-row">
+
+                    {{ cat_form.id }}
+
+                    <div class="form-group">
+
+                        <label>Category</label>
+
+                        {{ cat_form.name }}
+
+                        {{ cat_form.name.errors }}
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>Allocated (UGX)</label>
+
+                        {{ cat_form.allocated_amount }}
+
+                        {{ cat_form.allocated_amount.errors }}
+
+                    </div>
+
+                    {% if cat_form.DELETE %}
+
+                    <label class="delete-check">
+
+                        {{ cat_form.DELETE }} Remove
+
+                    </label>
+
+                    {% endif %}
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+
+
+        <div class="form-actions">
+
+            <button type="submit" class="btn btn-primary btn-block-mobile">
+
+                <i class="bx bx-save"></i> Save budget
+
+            </button>
+
+            {% if not is_new %}
+
+            <a href="{% url 'dashboard' %}" class="btn btn-ghost">Cancel</a>
+
+            {% endif %}
+
+        </div>
+
+    </form>
+
+    {% if not is_new %}
+    <section class="panel setup-panel setup-panel--danger" aria-label="Delete budget">
+        <h2 class="panel-title"><i class="bx bx-trash" aria-hidden="true"></i> Delete budget</h2>
+        <p class="panel-sub">
+            Permanently removes your budget, categories, transactions, and transfers. You can set up a new budget anytime.
+        </p>
+        {% include "budgetbuddy/partials/delete_budget_form.html" %}
+    </section>
+    {% endif %}
+
+</main>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block mobile_nav %}
+
+{% include "budgetbuddy/partials/bottom_nav.html" %}
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script>
+
+(function () {
+
+    const addBtn = document.getElementById('add-category');
+
+    const rows = document.getElementById('category-rows');
+
+    const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+
+    if (!addBtn || !rows || !totalForms) return;
+
+
+
+    addBtn.addEventListener('click', function () {
+
+        const index = parseInt(totalForms.value, 10);
+
+        const firstRow = rows.querySelector('.category-row');
+
+        if (!firstRow) return;
+
+        const newRow = firstRow.cloneNode(true);
+
+        newRow.querySelectorAll('input').forEach(function (input) {
+
+            if (input.name) {
+
+                input.name = input.name.replace(/form-\d+-/, 'form-' + index + '-');
+
+                input.id = input.id.replace(/form-\d+-/, 'form-' + index + '-');
+
+            }
+
+            if (input.type === 'checkbox') {
+
+                input.checked = false;
+
+            } else if (input.type === 'hidden' && input.name.endsWith('-id')) {
+
+                input.value = '';
+
+            } else {
+
+                input.value = '';
+
+            }
+
+        });
+
+        rows.appendChild(newRow);
+
+        totalForms.value = index + 1;
+
+    });
+
+})();
+
+</script>
+
+{% endblock %}
+
+
