@@ -1,4 +1,5 @@
 from django import template
+from django.urls import reverse
 
 from budgetbuddy.constants import CATEGORY_ICON_CLASSES, TRANSACTION_ICON_CLASSES
 
@@ -13,3 +14,12 @@ def transaction_icon(icon_key):
 @register.filter
 def category_icon(category_name):
     return CATEGORY_ICON_CLASSES.get(category_name, CATEGORY_ICON_CLASSES['default'])
+
+
+@register.simple_tag
+def nav_url(item):
+    if item.get('id') == 'home':
+        return reverse('dashboard')
+    if item.get('url_name'):
+        return reverse(item['url_name'])
+    return item.get('url', '#')

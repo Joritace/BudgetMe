@@ -1,6 +1,7 @@
+{% load budgetbuddy_tags %}
 <nav class="bottom-nav" aria-label="Main navigation">
     {% for item in nav_items %}
-    <a href="{% if item.id == 'home' %}{% url 'dashboard' %}{% elif item.url_name %}{% url item.url_name %}{% else %}{{ item.url }}{% endif %}"
+    <a href="{% nav_url item %}"
        class="nav-item {% if item.active %}active{% endif %}"
        {% if item.active %}aria-current="page"{% endif %}>
         <span class="nav-icon {% if item.active %}active{% endif %}">

@@ -1,570 +1,283 @@
 {% extends "budgetbuddy/base.html" %}
-
 {% load budgetbuddy_tags static %}
-
-
 
 {% block title %}Dashboard{% endblock %}
 
-
-
-{% block extra_css %}
-
-<link rel="stylesheet" href="{% static 'budgetbuddy/css/dash.css' %}">
-
-{% endblock %}
-
-
-
 {% block sidebar %}
-
 {% include "budgetbuddy/partials/sidebar.html" %}
-
 {% endblock %}
-
-
 
 {% block content %}
-
 {% if not has_budget %}
-
 <div class="dash dash--empty">
-
     <header class="dash-hero dash-hero--empty">
-
         <div class="dash-hero__bg" aria-hidden="true">
-
             <span class="dash-hero__orb dash-hero__orb--1"></span>
-
             <span class="dash-hero__orb dash-hero__orb--2"></span>
-
         </div>
-
         <div class="dash-hero__floats" aria-hidden="true">
-
             <i class="bx bx-wallet dash-float dash-float--1"></i>
-
             <i class="bx bx-line-chart dash-float dash-float--2"></i>
-
             <i class="bx bx-mobile-alt dash-float dash-float--3"></i>
-
             <i class="bx bx-piggy-bank dash-float dash-float--4"></i>
-
         </div>
-
         <div class="dash-hero__inner">
-
             <p class="dash-hero__eyebrow">Hi, Welcome to BudgetMe</p>
-
             <h1 class="dash-hero__title">{{ greeting }}</h1>
-
         </div>
-
     </header>
 
-
-
     <main class="dash-main">
-
         <section class="dash-onboard dash-animate" style="--i: 1" aria-label="Get started">
-
             <div class="dash-onboard__icon-wrap">
-
                 <i class="bx bx-wallet dash-onboard__icon" aria-hidden="true"></i>
-
                 <i class="bx bx-plus-circle dash-onboard__icon-float" aria-hidden="true"></i>
-
             </div>
-
             <h2>Set up your budget</h2>
-
             <p>Add your income, saving goal, and spending categories to start tracking your money in UGX.</p>
-
             <a href="{% url 'budget_setup' %}" class="btn btn-primary dash-onboard__cta">
-
                 <i class="bx bx-rocket"></i> Set up budget
-
             </a>
-
         </section>
-
     </main>
-
 </div>
 
-
-
 {% else %}
-
 <div class="dash">
-
     <header class="dash-hero">
-
         <div class="dash-hero__bg" aria-hidden="true">
-
             <span class="dash-hero__orb dash-hero__orb--1"></span>
-
             <span class="dash-hero__orb dash-hero__orb--2"></span>
-
             <span class="dash-hero__orb dash-hero__orb--3"></span>
-
         </div>
-
         <div class="dash-hero__floats" aria-hidden="true">
-
             <i class="bx bx-wallet dash-float dash-float--1"></i>
-
             <i class="bx bx-line-chart dash-float dash-float--2"></i>
-
             <i class="bx bx-mobile-alt dash-float dash-float--3"></i>
-
             <i class="bx bx-piggy-bank dash-float dash-float--4"></i>
-
             <i class="bx bx-coin-stack dash-float dash-float--5"></i>
-
             <i class="bx bx-trending-up dash-float dash-float--6"></i>
-
         </div>
-
-
 
         <div class="dash-hero__inner">
-
             <div class="dash-hero__top dash-animate" style="--i: 0">
-
                 <div class="dash-hero__intro">
-
                     <p class="dash-hero__eyebrow">Hi, Welcome Back</p>
-
                     <h1 class="dash-hero__title">{{ greeting }}, {{ first_name }}</h1>
-
                     <p class="dash-hero__income">
-
                         <i class="bx bx-money" aria-hidden="true"></i>
-
                         {{ data.currency }} {{ income_display.amount|floatformat:0 }} / {{ income_display.frequency }}
-
                     </p>
-
                 </div>
-
                 <button class="dash-notif" type="button" aria-label="Notifications">
-
                     <i class="bx bx-bell" aria-hidden="true"></i>
-
                 </button>
-
             </div>
-
-
 
             <div class="dash-hero__stats">
-
                 <article class="dash-stat dash-stat--balance dash-animate" style="--i: 1">
-
                     <div class="dash-stat__bubble" aria-hidden="true"><i class="bx bx-wallet"></i></div>
-
                     <div class="dash-stat__body">
-
                         <p class="dash-stat__label">Total Balance</p>
-
                         <p class="dash-stat__value">{{ data.currency }} {{ total_balance|floatformat:0 }}</p>
-
                         <p class="dash-stat__meta">{{ data.month }} · {{ budget_used_percent }}% spent</p>
-
                     </div>
-
                 </article>
-
                 <article class="dash-stat dash-stat--expense dash-animate" style="--i: 2">
-
                     <div class="dash-stat__bubble" aria-hidden="true"><i class="bx bx-down-arrow-alt"></i></div>
-
                     <div class="dash-stat__body">
-
                         <p class="dash-stat__label">Total Expense</p>
-
                         <p class="dash-stat__value dash-stat__value--expense">-{{ data.currency }} {{ data.total_spent|floatformat:0 }}</p>
-
                     </div>
-
                 </article>
-
                 <article class="dash-stat dash-stat--usage dash-animate" style="--i: 3">
-
                     <div class="dash-stat__bubble" aria-hidden="true"><i class="bx bx-pie-chart-alt-2"></i></div>
-
                     <div class="dash-stat__body">
-
                         <p class="dash-stat__label">Budget Used</p>
-
                         <p class="dash-stat__value">{{ budget_used_percent }}%</p>
-
                     </div>
-
                 </article>
-
             </div>
-
-
 
             <div class="dash-hero__progress dash-animate" style="--i: 4">
-
                 <div class="dash-progress__labels">
-
                     <span><i class="bx bx-bar-chart-alt-2"></i> Monthly spending</span>
-
                     <span>{{ budget_used_percent }}%</span>
-
                 </div>
-
                 <progress class="dash-progress" value="{{ budget_used_percent }}" max="100" aria-label="Budget used"></progress>
-
             </div>
-
         </div>
-
     </header>
 
-
-
     <main class="dash-main">
-
         <section class="dash-bento" aria-labelledby="dash-insights-title">
-
             <h2 id="dash-insights-title" class="dash-section-label dash-animate" style="--i: 6">
-
                 <i class="bx bx-grid-alt"></i> At a glance
-
             </h2>
-
             <div class="dash-bento__grid">
-
                 <article class="dash-tile dash-tile--savings dash-animate" style="--i: 7">
-
                     <div class="dash-tile__ring">
-
                         <svg viewBox="0 0 72 72" aria-hidden="true" style="--progress: {{ insights.saving_goal_percent }}">
-
                             <circle class="dash-ring-bg" cx="36" cy="36" r="30"/>
-
                             <circle class="dash-ring-fill" cx="36" cy="36" r="30"/>
-
                         </svg>
-
                         <span class="dash-tile__ring-pct">{{ insights.saving_goal_percent }}%</span>
-
                     </div>
-
                     <div class="dash-tile__content">
-
                         <p class="dash-tile__label"><i class="bx bx-target-lock"></i> Saving Goal</p>
-
                         {% if insights.has_saving_goal %}
-
                         <p class="dash-tile__value">UGX {{ insights.saving_goal_saved|floatformat:0 }}</p>
-
                         <p class="dash-tile__sub">of {{ insights.saving_goal_target|floatformat:0 }}</p>
-
                         {% else %}
-
                         <p class="dash-tile__sub"><a href="{% url 'budget_setup' %}">Set a goal →</a></p>
-
                         {% endif %}
-
                     </div>
-
                     <i class="bx bx-piggy-bank dash-tile__deco" aria-hidden="true"></i>
-
                 </article>
-
-
 
                 <article class="dash-tile dash-tile--income dash-animate" style="--i: 8">
-
                     <div class="dash-tile__icon"><i class="bx bx-trending-up"></i></div>
-
                     <p class="dash-tile__label">Revenue Last Week</p>
-
                     <p class="dash-tile__value dash-tile__value--pos">{{ data.currency }} {{ insights.revenue_last_week|floatformat:0 }}</p>
-
                 </article>
-
-
 
                 <article class="dash-tile dash-tile--expense dash-animate" style="--i: 9">
-
                     <div class="dash-tile__icon"><i class="bx bx-bowl-hot"></i></div>
-
                     <p class="dash-tile__label">Biggest Expense</p>
-
                     <p class="dash-tile__value dash-tile__value--neg">-{{ data.currency }} {{ insights.biggest_expense_amount|floatformat:0 }}</p>
-
                     <p class="dash-tile__sub">{{ insights.biggest_expense_category }}</p>
-
                 </article>
-
             </div>
-
         </section>
 
-
-
         <div class="dash-split">
-
             <section class="dash-card dash-animate" style="--i: 10" aria-labelledby="dash-budget-title">
-
                 <header class="dash-card__head">
-
                     <div>
-
                         <h2 id="dash-budget-title" class="dash-card__title">
-
                             <i class="bx bx-list-check"></i> Monthly Budget
-
                         </h2>
-
                         <p class="dash-card__sub">{{ data.month }} · {{ data.overview|length }} categories</p>
-
                     </div>
-
                     <a href="{% url 'budget_setup' %}" class="dash-card__action"><i class="bx bx-edit"></i> Edit</a>
-
                 </header>
 
-
-
                 <div class="dash-totals" aria-label="Budget totals">
-
                     <div class="dash-total">
-
                         <span class="dash-total__label">Allocated</span>
-
                         <span class="dash-total__val">{{ data.currency }} {{ data.total_allocated|floatformat:0 }}</span>
-
                     </div>
-
                     <div class="dash-total dash-total--spent">
-
                         <span class="dash-total__label">Spent</span>
-
                         <span class="dash-total__val">{{ data.currency }} {{ data.total_spent|floatformat:0 }}</span>
-
                     </div>
-
                     <div class="dash-total dash-total--left">
-
                         <span class="dash-total__label">Remaining</span>
-
                         <span class="dash-total__val">{{ data.currency }} {{ data.total_remaining|floatformat:0 }}</span>
-
                     </div>
-
                 </div>
 
-
-
                 <ul class="dash-cats{% if data.overview|length > 3 %} dash-cats--collapsible{% endif %}" id="budget-list">
-
                     {% for item in data.overview %}
-
                     <li class="dash-cat{% if forloop.counter > 3 %} dash-cat--extra{% endif %}" style="--ci: {{ forloop.counter }}">
-
                         <div class="dash-cat__icon"><i class="bx {{ item.category|category_icon }}"></i></div>
-
                         <div class="dash-cat__body">
-
                             <div class="dash-cat__row">
-
                                 <span class="dash-cat__name">{{ item.category }}</span>
-
                                 <span class="dash-cat__amt">{{ data.currency }} {{ item.spent|floatformat:0 }} <em>/ {{ item.allocated|floatformat:0 }}</em></span>
-
                             </div>
-
                             <progress class="dash-cat__bar {% if item.usage_percent > 100 %}dash-cat__bar--over{% elif item.usage_percent > 80 %}dash-cat__bar--warn{% endif %}"
-
                                       value="{{ item.bar_percent }}" max="100"
-
                                       aria-label="{{ item.category }} budget usage"></progress>
-
                         </div>
-
                     </li>
-
                     {% endfor %}
-
                 </ul>
 
-
-
                 {% if data.overview|length > 3 %}
-
                 <button type="button" class="dash-more" id="budget-see-more" aria-expanded="false" aria-controls="budget-list">
-
                     <span class="dash-more__label">See more categories</span>
-
                     <span class="dash-more__count">({{ data.overview|length|add:"-3" }} more)</span>
-
                     <i class="bx bx-chevron-down dash-more__chev"></i>
-
                 </button>
-
                 {% endif %}
 
                 <footer class="dash-card__danger">
                     {% include "budgetbuddy/partials/delete_budget_form.html" with form_class="dash-delete-form" button_class="btn-sm" button_label="Delete budget" %}
                 </footer>
-
             </section>
-
-
 
             <section class="dash-card dash-animate" style="--i: 11" aria-labelledby="dash-txn-title">
-
                 <header class="dash-card__head dash-card__head--stack">
-
                     <div>
-
                         <h2 id="dash-txn-title" class="dash-card__title">
-
                             <i class="bx bx-transfer-alt"></i> Transactions
-
                         </h2>
-
                         <p class="dash-card__sub">Recent · {% for key, label in period_choices.items %}{% if period == key %}{{ label }}{% endif %}{% endfor %}</p>
-
                     </div>
-
                     <nav class="dash-period" aria-label="Filter by period">
-
                         {% for key, label in period_choices.items %}
-
                         <a href="?period={{ key }}"
-
                            class="dash-period__tab {% if period == key %}is-active{% endif %}"
-
                            {% if period == key %}aria-current="page"{% endif %}>{{ label }}</a>
-
                         {% endfor %}
-
                     </nav>
-
                 </header>
 
-
-
                 <div class="dash-txns">
-
                     {% for txn in transactions %}
-
                     <article class="dash-txn" style="--ti: {{ forloop.counter }}">
-
                         <div class="dash-txn__icon txn-icon txn-icon--{{ txn.icon }}">
-
                             <i class="bx {{ txn.icon|transaction_icon }}"></i>
-
                         </div>
-
                         <div class="dash-txn__body">
-
                             <p class="dash-txn__label">{{ txn.label }}</p>
-
                             <p class="dash-txn__time"><i class="bx bx-time-five"></i> {{ txn.datetime|date:"M j · H:i" }}</p>
-
                         </div>
-
                         <div class="dash-txn__right">
-
                             <span class="dash-txn__type {% if txn.type == 'income' %}dash-txn__type--in{% else %}dash-txn__type--out{% endif %}">
-
                                 {% if txn.type == 'income' %}<i class="bx bx-plus"></i> Income{% else %}<i class="bx bx-minus"></i> Expense{% endif %}
-
                             </span>
-
                             <p class="dash-txn__amt {% if txn.type == 'expense' %}dash-txn__amt--neg{% else %}dash-txn__amt--pos{% endif %}">
-
                                 {% if txn.type == 'expense' %}-{% endif %}{{ data.currency }} {{ txn.amount|floatformat:0 }}
-
                             </p>
-
                         </div>
-
                     </article>
-
                     {% empty %}
-
                     <div class="dash-empty">
-
                         <i class="bx bx-receipt dash-empty__icon"></i>
-
                         <p>No transactions for this period.</p>
-
                         <a href="{% url 'transfer' %}" class="btn btn-primary btn-sm">Record a transfer</a>
-
                     </div>
-
                     {% endfor %}
-
                 </div>
-
             </section>
-
         </div>
-
     </main>
-
 </div>
-
 {% endif %}
-
 {% endblock %}
-
-
 
 {% block mobile_nav %}
-
 {% include "budgetbuddy/partials/bottom_nav.html" %}
-
 {% endblock %}
-
-
 
 {% block extra_js %}
-
 {% if has_budget %}
-
 <script>
-
 (function () {
-
     var btn = document.getElementById('budget-see-more');
-
     var list = document.getElementById('budget-list');
-
     if (!btn || !list) return;
 
-
-
     btn.addEventListener('click', function () {
-
         var expanded = list.classList.toggle('is-expanded');
-
         btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-
         btn.querySelector('.dash-more__label').textContent = expanded ? 'Show less' : 'See more categories';
-
         btn.querySelector('.dash-more__count').hidden = expanded;
-
         btn.classList.toggle('is-open', expanded);
-
     });
-
 })();
-
 </script>
-
 {% endif %}
-
 {% endblock %}
-

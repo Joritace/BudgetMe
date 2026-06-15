@@ -6,18 +6,9 @@ from django.views.decorators.http import require_http_methods
 
 from budgetbuddy.constants import nav_items_for
 from budgetbuddy.forms import TransferForm
+from budgetbuddy.services.page_context import build_guest_context
 from budgetbuddy.services.profile import get_active_profile, profile_to_user_dict
 from budgetbuddy.services.transfers import create_transfer, get_available_balance, get_transfers_for_profile
-
-
-def _empty_transfer_context():
-    return {
-        'has_budget': False,
-        'first_name': 'Friend',
-        'user': {'name': 'Guest'},
-        'data': {'currency': 'UGX'},
-        'nav_items': nav_items_for('transfer'),
-    }
 
 
 @require_http_methods(['GET', 'POST'])
@@ -25,7 +16,7 @@ def transfer_home(request):
     profile = get_active_profile(request)
 
     if not profile:
-        return render(request, 'budgetbuddy/transfer.html', _empty_transfer_context())
+        return render(request, 'budgetbuddy/transfer.html', build_guest_context('transfer'))
 
     available_balance = get_available_balance(profile)
     user = profile_to_user_dict(profile)

@@ -4,6 +4,8 @@ from datetime import date, datetime, timedelta
 
 from django.utils import timezone
 
+from budgetbuddy.services.page_context import build_guest_context
+
 PERIOD_CHOICES = ('daily', 'weekly', 'monthly')
 PERIOD_LABELS = {
     'daily': 'Daily',
@@ -97,13 +99,8 @@ def get_insights(user, expenses, transactions, profile=None):
 
 
 def build_empty_dashboard_context():
-    return {
-        'has_budget': False,
-        'greeting': get_greeting(),
-        'first_name': 'Friend',
-        'user': {'name': 'Guest'},
-        'data': {'currency': 'UGX'},
-    }
+    ctx = build_guest_context('home', greeting=get_greeting())
+    return ctx
 
 
 def build_dashboard_context(user, expenses, transactions, period='monthly', mobile_money=None, profile=None):

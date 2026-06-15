@@ -6,18 +6,9 @@ from django.views.decorators.http import require_http_methods
 
 from budgetbuddy.constants import nav_items_for
 from budgetbuddy.forms import ProfileForm
+from budgetbuddy.services.page_context import build_guest_context
 from budgetbuddy.services.profile import get_active_profile
 from budgetbuddy.services.profile_page import build_profile_context
-
-
-def _empty_profile_context():
-    return {
-        'has_budget': False,
-        'first_name': 'Friend',
-        'user': {'name': 'Guest'},
-        'data': {'currency': 'UGX'},
-        'nav_items': nav_items_for('profile'),
-    }
 
 
 @require_http_methods(['GET', 'POST'])
@@ -25,7 +16,7 @@ def profile_home(request):
     profile = get_active_profile(request)
 
     if not profile:
-        return render(request, 'budgetbuddy/profile.html', _empty_profile_context())
+        return render(request, 'budgetbuddy/profile.html', build_guest_context('profile'))
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, instance=profile)

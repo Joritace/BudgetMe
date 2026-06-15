@@ -1,0 +1,7 @@
+<section class="panel setup-panel setup-panel--danger {{ panel_class|default:'' }}" aria-label="{{ aria_label|default:'Delete budget' }}">
+    <h2 class="panel-title"><i class="bx bx-trash" aria-hidden="true"></i> {{ title|default:"Delete budget" }}</h2>
+    {% if description %}
+    <p class="panel-sub">{{ description }}</p>
+    {% endif %}
+    {% include "budgetbuddy/partials/delete_budget_form.html" %}
+</section>

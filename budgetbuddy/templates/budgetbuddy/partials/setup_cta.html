@@ -1,0 +1,8 @@
+<section class="panel setup-cta" aria-label="Get started">
+    <div class="setup-cta-icon"><i class="bx {{ icon }}" aria-hidden="true"></i></div>
+    <h2>{{ title }}</h2>
+    <p>{{ body }}</p>
+    <a href="{% url 'budget_setup' %}" class="btn btn-primary">
+        <i class="bx bx-plus-circle"></i> {{ button_label|default:"Set up budget" }}
+    </a>
+</section>

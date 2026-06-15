@@ -1,3 +1,4 @@
+from .page_context import build_guest_context
 from .budget import summarize_budget
 from .dashboard import (
     build_dashboard_context,
@@ -18,6 +19,7 @@ from .transactions import get_transactions_for_profile, transaction_to_dict
 from .transfers import create_transfer, get_available_balance, get_transfers_for_profile
 
 __all__ = [
+    'build_guest_context',
     'summarize_budget',
     'build_dashboard_context',
     'build_empty_dashboard_context',

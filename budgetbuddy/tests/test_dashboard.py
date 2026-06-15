@@ -13,33 +13,7 @@ from budgetbuddy.services import (
     summarize_budget,
     transaction_to_dict,
 )
-
-
-def create_budget_via_form(client, name='Jane Doe', income=2_500_000, frequency='monthly', goal=400_000):
-    data = {
-        'name': name,
-        'income_amount': income,
-        'income_frequency': frequency,
-        'saving_goal_amount': goal,
-        'form-TOTAL_FORMS': 2,
-        'form-INITIAL_FORMS': 0,
-        'form-MIN_NUM_FORMS': 0,
-        'form-MAX_NUM_FORMS': 1000,
-        'form-0-name': 'Rent',
-        'form-0-allocated_amount': 800_000,
-        'form-1-name': 'Food & Market',
-        'form-1-allocated_amount': 450_000,
-    }
-    return client.post(reverse('budget_setup'), data)
-
-
-def set_profile_phones(client, mtn_phone='0770123456', airtel_phone='0750123456', name='Jane Doe'):
-    return client.post(reverse('profile'), {
-        'name': name,
-        'mtn_phone': mtn_phone,
-        'airtel_phone': airtel_phone,
-    })
-
+from budgetbuddy.tests.helpers import budget_setup_post_data, create_budget_via_form, set_profile_phones
 
 class BudgetServiceTests(TestCase):
     def test_summarize_budget_calculates_totals(self):
@@ -69,6 +43,7 @@ class DashboardServiceTests(TestCase):
         ctx = build_empty_dashboard_context()
         self.assertFalse(ctx['has_budget'])
         self.assertIn('greeting', ctx)
+        self.assertIn('nav_items', ctx)
 
 
 class ProfileServiceTests(TestCase):
@@ -151,20 +126,10 @@ class BudgetSetupViewTests(TestCase):
         self.assertContains(response, reverse('budget_delete'))
 
     def test_budget_rejects_over_income(self):
-        response = self.client.post(reverse('budget_setup'), {
-            'name': 'Jane Doe',
-            'income_amount': 1_000_000,
-            'income_frequency': 'monthly',
-            'saving_goal_amount': 400_000,
-            'form-TOTAL_FORMS': 2,
-            'form-INITIAL_FORMS': 0,
-            'form-MIN_NUM_FORMS': 0,
-            'form-MAX_NUM_FORMS': 1000,
-            'form-0-name': 'Rent',
-            'form-0-allocated_amount': 800_000,
-            'form-1-name': 'Food & Market',
-            'form-1-allocated_amount': 450_000,
-        })
+        response = self.client.post(
+            reverse('budget_setup'),
+            budget_setup_post_data(income=1_000_000),
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'cannot exceed your monthly income')
         self.assertEqual(BudgetProfile.objects.count(), 0)

@@ -1,3 +1,4 @@
+{% load budgetbuddy_tags %}
 <aside class="sidebar" aria-label="Main navigation">
     <a href="{% url 'dashboard' %}" class="sidebar-brand">
         <span class="brand-mark"><i class="bx bx-coin-stack" aria-hidden="true"></i></span>
@@ -7,7 +8,7 @@
     </a>
     <nav class="sidebar-nav">
         {% for item in nav_items %}
-        <a href="{% if item.id == 'home' %}{% url 'dashboard' %}{% elif item.url_name %}{% url item.url_name %}{% else %}{{ item.url }}{% endif %}"
+        <a href="{% nav_url item %}"
            class="sidebar-link {% if item.active %}active{% endif %}"
            {% if item.active %}aria-current="page"{% endif %}>
             <i class="bx {{ item.icon }}" aria-hidden="true"></i>
