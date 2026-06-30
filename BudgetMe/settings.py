@@ -47,6 +47,14 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
+# Render sets these automatically — avoid DisallowedHost / CSRF failures without manual env vars.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '').strip()
+RENDER_EXTERNAL_URL = os.environ.get('RENDER_EXTERNAL_URL', '').strip()
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+if RENDER_EXTERNAL_URL and RENDER_EXTERNAL_URL not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(RENDER_EXTERNAL_URL)
+
 
 # Application definition
 
@@ -93,7 +101,13 @@ GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '').strip()
 GOOGLE_OAUTH_CONFIGURED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
 GOOGLE_OAUTH_CALLBACK_URI = os.environ.get(
     'GOOGLE_OAUTH_CALLBACK_URI',
-    'http://127.0.0.1:8000/accounts/google/login/callback/' if DEBUG else '',
+    (
+        f'{RENDER_EXTERNAL_URL.rstrip("/")}/accounts/google/login/callback/'
+        if RENDER_EXTERNAL_URL
+        else 'http://127.0.0.1:8000/accounts/google/login/callback/'
+        if DEBUG
+        else ''
+    ),
 ).strip()
 
 # Credentials live in the SocialApp database row (see: python manage.py setup_google_oauth).
