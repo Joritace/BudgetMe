@@ -1,3 +1,4 @@
+from allauth.account.views import LoginView
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
@@ -13,8 +14,11 @@ from budgetbuddy.services import (
 )
 
 
-@require_http_methods(['GET'])
+@require_http_methods(['GET', 'POST'])
 def dashboard_home(request):
+    if not request.user.is_authenticated:
+        return LoginView.as_view(template_name='account/login.html')(request)
+
     profile = get_active_profile(request)
 
     if not profile:

@@ -125,13 +125,15 @@ class BudgetSetupViewTests(TestCase):
     def test_empty_dashboard_prompts_sign_in_for_guest(self):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Sign in to get started')
-        self.assertContains(response, 'Sign in with email')
+        self.assertContains(response, 'Sign in')
+        self.assertContains(response, 'Track every shilling in UGX')
+        self.assertNotContains(response, 'sidebar-nav')
 
     def test_empty_dashboard_shows_google_when_configured(self):
         enable_google_oauth_for_tests()
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'Continue with Google')
+        self.assertNotContains(response, 'sidebar-nav')
 
     def test_empty_dashboard_shows_setup_cta_when_logged_in(self):
         login_test_user(self.client)

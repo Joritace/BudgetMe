@@ -44,16 +44,6 @@
             <a href="{% url 'budget_setup' %}" class="btn btn-primary dash-onboard__cta">
                 <i class="bx bx-rocket"></i> Set up budget
             </a>
-            {% else %}
-            <h2>Sign in to get started</h2>
-            <p>Create a free account or continue with Google to set up your UGX budget and track mobile money.</p>
-            <div class="dash-onboard__auth">
-                {% include "budgetbuddy/partials/google_login_button.html" %}
-                <a href="{% url 'account_login' %}" class="btn btn-primary dash-onboard__cta">
-                    <i class="bx bx-log-in"></i> Sign in with email
-                </a>
-                <a href="{% url 'account_signup' %}" class="dash-onboard__signup">Create account</a>
-            </div>
             {% endif %}
         </section>
     </main>

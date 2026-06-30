@@ -436,6 +436,52 @@
     text-align: center;
 }
 
+@media (max-width: 899px) {
+    .auth-shell__hero {
+        padding: 24px max(var(--page-gutter), env(safe-area-inset-right, 0px))
+                 32px max(var(--page-gutter), env(safe-area-inset-left, 0px));
+    }
+
+    .auth-shell__brand {
+        margin-bottom: 20px;
+    }
+
+    .auth-shell__tagline {
+        font-size: 1.55rem;
+    }
+
+    .auth-shell__desc {
+        font-size: 0.875rem;
+        margin-bottom: 18px;
+    }
+
+    .auth-shell__features {
+        gap: 8px;
+    }
+
+    .auth-shell__features li {
+        font-size: 0.8125rem;
+    }
+
+    .auth-shell__main {
+        flex: 1;
+        margin-top: -20px;
+        padding-top: 8px;
+        background: var(--white);
+        border-radius: 24px 24px 0 0;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 -8px 32px rgba(26, 26, 46, 0.08);
+    }
+
+    .auth-card {
+        padding: 28px 22px 32px;
+        border-radius: 20px 20px 0 0;
+        box-shadow: none;
+        border: none;
+    }
+}
+
 /* Sidebar auth (logged out) */
 .sidebar-footer {
     margin-top: auto;
