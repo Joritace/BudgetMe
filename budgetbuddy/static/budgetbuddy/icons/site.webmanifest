@@ -1,22 +1,21 @@
 {
   "name": "BudgetMe",
-  "short_name": "BM",
+  "short_name": "BudgetMe",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#22c55e",
+  "background_color": "#fffafb",
+  "theme_color": "#fffafb",
   "icons": [
     {
-      "src": "/static/icons/web-app-manifest-192x192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     },
     {
-      "src": "/static/icons/web-app-manifest-512x512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     }
   ]
 }
