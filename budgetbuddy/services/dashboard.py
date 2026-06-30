@@ -98,8 +98,9 @@ def get_insights(user, expenses, transactions, profile=None):
     }
 
 
-def build_empty_dashboard_context():
-    ctx = build_guest_context('home', greeting=get_greeting())
+def build_empty_dashboard_context(request=None):
+    user = getattr(request, 'user', None) if request is not None else None
+    ctx = build_guest_context('home', greeting=get_greeting(), user=user)
     return ctx
 
 

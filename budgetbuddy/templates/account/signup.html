@@ -1,0 +1,71 @@
+{% extends "budgetbuddy/auth_base.html" %}
+{% load socialaccount %}
+
+{% block title %}Create account{% endblock %}
+
+{% block auth_card %}
+<header class="auth-card__head">
+    <p class="auth-card__eyebrow">Get started free</p>
+    <h1 class="auth-card__title">Create account</h1>
+    <p class="auth-card__lead">Set up your budget in minutes — no card required.</p>
+</header>
+
+{% include "budgetbuddy/partials/google_login_button.html" %}
+
+{% if google_oauth_configured %}
+<div class="auth-divider" role="presentation"><span>or sign up with email</span></div>
+{% endif %}
+
+<form method="post" action="{% url 'account_signup' %}" class="auth-form" novalidate>
+    {% csrf_token %}
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+    {% endif %}
+
+    {% if form.non_field_errors %}
+    <div class="form-errors auth-form__errors" role="alert">
+        {% for error in form.non_field_errors %}
+        <p><i class="bx bx-error-circle"></i> {{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-group form-group--full auth-field">
+        <label for="{{ form.email.id_for_label }}">Email address</label>
+        <div class="auth-field__wrap">
+            <i class="bx bx-envelope auth-field__icon" aria-hidden="true"></i>
+            {{ form.email }}
+        </div>
+        {{ form.email.errors }}
+    </div>
+
+    <div class="form-group form-group--full auth-field">
+        <label for="{{ form.password1.id_for_label }}">Password</label>
+        <div class="auth-field__wrap">
+            <i class="bx bx-lock-alt auth-field__icon" aria-hidden="true"></i>
+            {{ form.password1 }}
+        </div>
+        {{ form.password1.errors }}
+    </div>
+
+    <div class="form-group form-group--full auth-field">
+        <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+        <div class="auth-field__wrap">
+            <i class="bx bx-lock auth-field__icon" aria-hidden="true"></i>
+            {{ form.password2 }}
+        </div>
+        {{ form.password2.errors }}
+    </div>
+
+    <div class="form-actions auth-form__actions">
+        <button type="submit" class="btn btn-primary btn-block-mobile auth-submit">
+            <i class="bx bx-user-plus"></i> Create account
+        </button>
+    </div>
+</form>
+
+<p class="auth-card__footer">
+    Already have an account?
+    <a href="{% url 'account_login' %}{% if redirect_field_value %}?{{ redirect_field_name }}={{ redirect_field_value|urlencode }}{% endif %}">Sign in</a>
+</p>
+{% endblock %}

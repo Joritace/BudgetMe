@@ -1,4 +1,5 @@
 @import url('dash.css');
+@import url('auth.css');
 
 :root {
     --green: #3ecf8e;

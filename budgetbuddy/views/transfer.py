@@ -1,6 +1,7 @@
 """Transfer view."""
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
@@ -11,12 +12,17 @@ from budgetbuddy.services.profile import get_active_profile, profile_to_user_dic
 from budgetbuddy.services.transfers import create_transfer, get_available_balance, get_transfers_for_profile
 
 
+@login_required
 @require_http_methods(['GET', 'POST'])
 def transfer_home(request):
     profile = get_active_profile(request)
 
     if not profile:
-        return render(request, 'budgetbuddy/transfer.html', build_guest_context('transfer'))
+        return render(
+            request,
+            'budgetbuddy/transfer.html',
+            build_guest_context('transfer', user=request.user),
+        )
 
     available_balance = get_available_balance(profile)
     user = profile_to_user_dict(profile)
@@ -49,6 +55,7 @@ def transfer_home(request):
 
     return render(request, 'budgetbuddy/transfer.html', {
         'has_budget': True,
+        'is_authenticated': True,
         'form': form,
         'profile': profile,
         'user': user,

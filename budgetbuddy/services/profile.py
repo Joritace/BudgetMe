@@ -3,27 +3,13 @@
 from budgetbuddy.models import BudgetProfile
 from budgetbuddy.services.transactions import expenses_from_transactions, get_transactions_for_profile
 
-SESSION_PROFILE_KEY = 'budget_profile_id'
-
-
-def set_active_profile(request, profile):
-    request.session[SESSION_PROFILE_KEY] = profile.pk
-
-
-def clear_active_profile(request):
-    request.session.pop(SESSION_PROFILE_KEY, None)
-
 
 def get_active_profile(request=None, profile_id=None):
-    if profile_id is None and request is not None:
-        profile_id = request.session.get(SESSION_PROFILE_KEY)
-        if not profile_id:
-            profile_id = request.GET.get('user_id')
-        if profile_id:
-            try:
-                profile_id = int(profile_id)
-            except (ValueError, TypeError):
-                profile_id = None
+    """Return the budget profile owned by the signed-in user."""
+    if request is not None:
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated:
+            return BudgetProfile.objects.filter(user=user).first()
 
     if profile_id:
         return BudgetProfile.objects.filter(pk=profile_id).first()
@@ -74,3 +60,14 @@ def savings_progress(profile, expenses):
         if 'saving' in category.lower() or 'sacco' in category.lower():
             saved += float(expense.get('amount', 0))
     return round(saved)
+
+
+def default_profile_name(user):
+    full_name = user.get_full_name().strip()
+    if full_name:
+        return full_name
+    if user.first_name:
+        return user.first_name
+    if user.email:
+        return user.email.split('@')[0]
+    return 'Friend'

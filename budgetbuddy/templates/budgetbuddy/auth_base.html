@@ -1,0 +1,43 @@
+{% extends "budgetbuddy/base.html" %}
+
+{% block sidebar %}{% endblock %}
+{% block mobile_nav %}{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+    <section class="auth-shell__hero" aria-label="BudgetMe">
+        <div class="auth-shell__hero-bg" aria-hidden="true">
+            <span class="auth-shell__orb auth-shell__orb--1"></span>
+            <span class="auth-shell__orb auth-shell__orb--2"></span>
+            <span class="auth-shell__orb auth-shell__orb--3"></span>
+        </div>
+        <div class="auth-shell__floats" aria-hidden="true">
+            <i class="bx bx-wallet auth-shell__float auth-shell__float--1"></i>
+            <i class="bx bx-line-chart auth-shell__float auth-shell__float--2"></i>
+            <i class="bx bx-mobile-alt auth-shell__float auth-shell__float--3"></i>
+            <i class="bx bx-piggy-bank auth-shell__float auth-shell__float--4"></i>
+        </div>
+        <div class="auth-shell__hero-inner">
+            <a href="{% url 'dashboard' %}" class="auth-shell__brand">
+                <span class="auth-shell__brand-mark"><i class="bx bx-coin-stack" aria-hidden="true"></i></span>
+                <span class="auth-shell__brand-name">BudgetMe</span>
+            </a>
+            <p class="auth-shell__eyebrow">Made for Uganda</p>
+            <h2 class="auth-shell__tagline">Track every shilling in UGX.</h2>
+            <p class="auth-shell__desc">Plan your monthly budget, record MTN &amp; Airtel transfers, and watch your savings grow.</p>
+            <ul class="auth-shell__features">
+                <li><i class="bx bx-check-circle" aria-hidden="true"></i> Smart category budgets</li>
+                <li><i class="bx bx-check-circle" aria-hidden="true"></i> Mobile money &amp; cash tracking</li>
+                <li><i class="bx bx-check-circle" aria-hidden="true"></i> Savings goal progress</li>
+            </ul>
+        </div>
+    </section>
+
+    <main class="auth-shell__main">
+        <div class="auth-card">
+            {% block auth_card %}{% endblock %}
+        </div>
+        <p class="auth-shell__legal">Secure sign-in · Your data stays on your account</p>
+    </main>
+</div>
+{% endblock %}

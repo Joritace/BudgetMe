@@ -11,9 +11,16 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / '.env')
+except ImportError:
+    pass
 
 
 # Quick-start development settings - unsuitable for production
@@ -37,8 +44,54 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'budgetbuddy',
 ]
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+LOGIN_URL = 'account_login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'account_login'
+
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_LOGIN_ON_SIGNUP = True
+ACCOUNT_LOGOUT_ON_GET = False
+ACCOUNT_ADAPTER = 'budgetbuddy.adapters.BudgetAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'budgetbuddy.adapters.BudgetSocialAccountAdapter'
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '').strip()
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '').strip()
+GOOGLE_OAUTH_CONFIGURED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
+GOOGLE_OAUTH_CALLBACK_URI = os.environ.get(
+    'GOOGLE_OAUTH_CALLBACK_URI',
+    'http://127.0.0.1:8000/accounts/google/login/callback/' if DEBUG else '',
+).strip()
+
+# Credentials live in the SocialApp database row (see: python manage.py setup_google_oauth).
+# Do not also set APP here — duplicate sources cause MultipleObjectsReturned at login.
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'OAUTH_PKCE_ENABLED': True,
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -48,6 +101,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'BudgetMe.urls'
@@ -55,13 +109,14 @@ ROOT_URLCONF = 'BudgetMe.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'budgetbuddy' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'budgetbuddy.context_processors.auth_providers',
             ],
         },
     },

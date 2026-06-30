@@ -16,12 +16,30 @@
         </a>
         {% endfor %}
     </nav>
-    <a href="{% url 'profile' %}" class="sidebar-user" aria-label="Open profile">
-        <div class="avatar">{{ first_name|slice:":1" }}</div>
-        <div>
-            <p class="user-name">{{ user.name }}</p>
-            <p class="user-meta">{{ data.currency }} budget</p>
+
+    <div class="sidebar-footer">
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'profile' %}" class="sidebar-user" aria-label="Open profile">
+            <div class="avatar">{{ first_name|slice:":1" }}</div>
+            <div>
+                <p class="user-name">{{ user.name|default:request.user.get_full_name|default:request.user.email }}</p>
+                <p class="user-meta">{{ data.currency }} budget</p>
+            </div>
+            <i class="bx bx-chevron-right sidebar-user__chevron" aria-hidden="true"></i>
+        </a>
+        <form method="post" action="{% url 'account_logout' %}" class="sidebar-logout-form">
+            {% csrf_token %}
+            <button type="submit" class="sidebar-logout">
+                <i class="bx bx-log-out"></i> Sign out
+            </button>
+        </form>
+        {% else %}
+        <div class="sidebar-auth">
+            <a href="{% url 'account_login' %}" class="btn btn-primary sidebar-auth__btn">
+                <i class="bx bx-log-in"></i> Sign in
+            </a>
+            <a href="{% url 'account_signup' %}" class="sidebar-auth__link">Create account</a>
         </div>
-        <i class="bx bx-chevron-right sidebar-user__chevron" aria-hidden="true"></i>
-    </a>
+        {% endif %}
+    </div>
 </aside>

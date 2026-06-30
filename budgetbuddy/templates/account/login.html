@@ -1,0 +1,70 @@
+{% extends "budgetbuddy/auth_base.html" %}
+{% load socialaccount %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block auth_card %}
+<header class="auth-card__head">
+    <p class="auth-card__eyebrow">Welcome back</p>
+    <h1 class="auth-card__title">Sign in</h1>
+    <p class="auth-card__lead">Continue to your UGX budget dashboard.</p>
+</header>
+
+{% include "budgetbuddy/partials/google_login_button.html" %}
+
+{% if google_oauth_configured %}
+<div class="auth-divider" role="presentation"><span>or use email</span></div>
+{% endif %}
+
+<form method="post" action="{% url 'account_login' %}" class="auth-form" novalidate>
+    {% csrf_token %}
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+    {% endif %}
+
+    {% if form.non_field_errors %}
+    <div class="form-errors auth-form__errors" role="alert">
+        {% for error in form.non_field_errors %}
+        <p><i class="bx bx-error-circle"></i> {{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-group form-group--full auth-field">
+        <label for="{{ form.login.id_for_label }}">Email address</label>
+        <div class="auth-field__wrap">
+            <i class="bx bx-envelope auth-field__icon" aria-hidden="true"></i>
+            {{ form.login }}
+        </div>
+        {{ form.login.errors }}
+    </div>
+
+    <div class="form-group form-group--full auth-field">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        <div class="auth-field__wrap">
+            <i class="bx bx-lock-alt auth-field__icon" aria-hidden="true"></i>
+            {{ form.password }}
+        </div>
+        {{ form.password.errors }}
+    </div>
+
+    <div class="auth-form__row">
+        <label class="auth-remember">
+            {{ form.remember }}
+            <span>Remember me</span>
+        </label>
+        <a href="{% url 'account_reset_password' %}" class="auth-forgot">Forgot password?</a>
+    </div>
+
+    <div class="form-actions auth-form__actions">
+        <button type="submit" class="btn btn-primary btn-block-mobile auth-submit">
+            <i class="bx bx-log-in"></i> Sign in
+        </button>
+    </div>
+</form>
+
+<p class="auth-card__footer">
+    New to BudgetMe?
+    <a href="{% url 'account_signup' %}{% if redirect_field_value %}?{{ redirect_field_name }}={{ redirect_field_value|urlencode }}{% endif %}">Create an account</a>
+</p>
+{% endblock %}

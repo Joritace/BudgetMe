@@ -28,16 +28,33 @@
     </header>
 
     <main class="dash-main">
-        <section class="dash-onboard dash-animate" style="--i: 1" aria-label="Get started">
+        <section class="dash-onboard dash-onboard--auth dash-animate" style="--i: 1" aria-label="Get started">
+            <div class="dash-onboard__badges">
+                <span class="dash-onboard__badge"><i class="bx bx-money"></i> UGX</span>
+                <span class="dash-onboard__badge"><i class="bx bx-mobile-alt"></i> MTN &amp; Airtel</span>
+                <span class="dash-onboard__badge"><i class="bx bx-shield-quarter"></i> Secure</span>
+            </div>
             <div class="dash-onboard__icon-wrap">
                 <i class="bx bx-wallet dash-onboard__icon" aria-hidden="true"></i>
                 <i class="bx bx-plus-circle dash-onboard__icon-float" aria-hidden="true"></i>
             </div>
+            {% if is_authenticated %}
             <h2>Set up your budget</h2>
             <p>Add your income, saving goal, and spending categories to start tracking your money in UGX.</p>
             <a href="{% url 'budget_setup' %}" class="btn btn-primary dash-onboard__cta">
                 <i class="bx bx-rocket"></i> Set up budget
             </a>
+            {% else %}
+            <h2>Sign in to get started</h2>
+            <p>Create a free account or continue with Google to set up your UGX budget and track mobile money.</p>
+            <div class="dash-onboard__auth">
+                {% include "budgetbuddy/partials/google_login_button.html" %}
+                <a href="{% url 'account_login' %}" class="btn btn-primary dash-onboard__cta">
+                    <i class="bx bx-log-in"></i> Sign in with email
+                </a>
+                <a href="{% url 'account_signup' %}" class="dash-onboard__signup">Create account</a>
+            </div>
+            {% endif %}
         </section>
     </main>
 </div>

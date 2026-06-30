@@ -17,7 +17,23 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from allauth.socialaccount.providers.oauth2.views import OAuth2CallbackView, OAuth2LoginView
+
+from budgetbuddy.oauth.google import BudgetGoogleOAuth2Adapter
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Override Google OAuth routes so redirect_uri is always the canonical callback URL.
+    path(
+        'accounts/google/login/',
+        OAuth2LoginView.adapter_view(BudgetGoogleOAuth2Adapter),
+        name='google_login',
+    ),
+    path(
+        'accounts/google/login/callback/',
+        OAuth2CallbackView.adapter_view(BudgetGoogleOAuth2Adapter),
+        name='google_callback',
+    ),
+    path('accounts/', include('allauth.urls')),
     path('', include('budgetbuddy.urls')),
 ]

@@ -1,6 +1,27 @@
 """Shared test helpers."""
 
+from django.contrib.auth import get_user_model
 from django.urls import reverse
+
+
+def login_test_user(client, *, email='jane@example.com', password='testpass123', first_name='Jane', last_name='Doe'):
+    User = get_user_model()
+    user, created = User.objects.get_or_create(
+        email=email,
+        defaults={
+            'username': email.split('@')[0],
+            'first_name': first_name,
+            'last_name': last_name,
+        },
+    )
+    if not created:
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save(update_fields=['first_name', 'last_name'])
+    user.set_password(password)
+    user.save(update_fields=['password'])
+    client.force_login(user)
+    return user
 
 
 def budget_setup_post_data(
@@ -32,6 +53,7 @@ def budget_setup_post_data(
 
 
 def create_budget_via_form(client, **kwargs):
+    login_test_user(client)
     return client.post(reverse('budget_setup'), budget_setup_post_data(**kwargs))
 
 

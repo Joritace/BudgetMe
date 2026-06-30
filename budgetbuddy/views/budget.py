@@ -1,6 +1,5 @@
-"""Budget setup view."""
-
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -9,7 +8,7 @@ from budgetbuddy.constants import nav_items_for
 from budgetbuddy.forms import BudgetCategoryFormSet, BudgetProfileForm, suggested_category_initial
 from budgetbuddy.models import BudgetCategory, BudgetProfile
 from budgetbuddy.services.budget_validation import monthly_income_from, validate_budget_within_income
-from budgetbuddy.services.profile import clear_active_profile, get_active_profile, set_active_profile
+from budgetbuddy.services.profile import default_profile_name, get_active_profile
 
 
 def _save_categories(formset, profile):
@@ -23,6 +22,7 @@ def _save_categories(formset, profile):
         obj.delete()
 
 
+@login_required
 @require_http_methods(['GET', 'POST'])
 def budget_setup(request):
     profile = get_active_profile(request)
@@ -54,15 +54,19 @@ def budget_setup(request):
                 )
             else:
                 with transaction.atomic():
-                    profile = form.save()
+                    profile = form.save(commit=False)
+                    profile.user = request.user
+                    profile.save()
                     _save_categories(formset, profile)
 
-                set_active_profile(request, profile)
                 messages.success(request, 'Your budget has been saved.')
                 return redirect('dashboard')
     else:
         if is_new:
-            form = BudgetProfileForm(initial={'income_frequency': 'monthly'})
+            form = BudgetProfileForm(initial={
+                'income_frequency': 'monthly',
+                'name': default_profile_name(request.user),
+            })
             formset = BudgetCategoryFormSet(
                 queryset=BudgetCategory.objects.none(),
                 initial=suggested_category_initial(),
@@ -71,7 +75,7 @@ def budget_setup(request):
             form = BudgetProfileForm(instance=profile)
             formset = BudgetCategoryFormSet(queryset=profile.categories.all())
 
-    profile_name = profile.name if profile and profile.name else 'Guest'
+    profile_name = profile.name if profile and profile.name else default_profile_name(request.user)
     income_preview = None
     if request.method == 'POST' and form.is_bound:
         try:
@@ -99,6 +103,7 @@ def budget_setup(request):
     })
 
 
+@login_required
 @require_http_methods(['POST'])
 def budget_delete(request):
     profile = get_active_profile(request)
@@ -108,6 +113,5 @@ def budget_delete(request):
 
     name = profile.name
     profile.delete()
-    clear_active_profile(request)
     messages.success(request, f'Budget for {name} has been deleted.')
     return redirect('dashboard')

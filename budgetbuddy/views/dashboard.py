@@ -18,7 +18,7 @@ def dashboard_home(request):
     profile = get_active_profile(request)
 
     if not profile:
-        context = build_empty_dashboard_context()
+        context = build_empty_dashboard_context(request)
         context['nav_items'] = nav_items_for('home')
         return render(request, 'budgetbuddy/dashboard.html', context)
 
@@ -35,5 +35,6 @@ def dashboard_home(request):
         profile=profile,
     )
     context['nav_items'] = nav_items_for('home')
+    context['is_authenticated'] = request.user.is_authenticated
 
     return render(request, 'budgetbuddy/dashboard.html', context)

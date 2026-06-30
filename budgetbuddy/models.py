@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import models
 
 from budgetbuddy.constants import CURRENCY_CODE, INCOME_FREQUENCY_CHOICES
@@ -8,6 +9,13 @@ from budgetbuddy.constants import CURRENCY_CODE, INCOME_FREQUENCY_CHOICES
 class BudgetProfile(models.Model):
     """A user's budget plan — income, saving goal, and category limits."""
 
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='budget_profile',
+        null=True,
+        blank=True,
+    )
     name = models.CharField(max_length=150)
     income_amount = models.DecimalField(max_digits=12, decimal_places=0, default=0)
     income_frequency = models.CharField(

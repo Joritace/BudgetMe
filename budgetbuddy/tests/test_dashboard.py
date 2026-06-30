@@ -1,8 +1,11 @@
 from datetime import date, datetime
 
+from django.contrib.sites.models import Site
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+
+from allauth.socialaccount.models import SocialApp
 
 from budgetbuddy.models import BudgetCategory, BudgetProfile, MobileMoneyTransaction, Transaction
 from budgetbuddy.mocks import get_mock_mobile_money, get_mock_transactions, get_mock_user
@@ -13,7 +16,21 @@ from budgetbuddy.services import (
     summarize_budget,
     transaction_to_dict,
 )
-from budgetbuddy.tests.helpers import budget_setup_post_data, create_budget_via_form, set_profile_phones
+from budgetbuddy.tests.helpers import budget_setup_post_data, create_budget_via_form, login_test_user, set_profile_phones
+
+
+def enable_google_oauth_for_tests():
+    site = Site.objects.get_current()
+    app, _ = SocialApp.objects.update_or_create(
+        provider='google',
+        defaults={
+            'name': 'Google',
+            'client_id': 'test-client-id.apps.googleusercontent.com',
+            'secret': 'test-client-secret',
+        },
+    )
+    app.sites.add(site)
+    return app
 
 class BudgetServiceTests(TestCase):
     def test_summarize_budget_calculates_totals(self):
@@ -105,11 +122,41 @@ class TransactionServiceTests(TestCase):
 
 
 class BudgetSetupViewTests(TestCase):
-    def test_empty_dashboard_shows_setup_cta(self):
+    def test_empty_dashboard_prompts_sign_in_for_guest(self):
+        response = self.client.get(reverse('dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Sign in to get started')
+        self.assertContains(response, 'Sign in with email')
+
+    def test_empty_dashboard_shows_google_when_configured(self):
+        enable_google_oauth_for_tests()
+        response = self.client.get(reverse('dashboard'))
+        self.assertContains(response, 'Continue with Google')
+
+    def test_empty_dashboard_shows_setup_cta_when_logged_in(self):
+        login_test_user(self.client)
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Set up your budget')
-        self.assertContains(response, 'Welcome to BudgetMe')
+
+    def test_budget_setup_requires_login(self):
+        response = self.client.get(reverse('budget_setup'))
+        self.assertRedirects(
+            response,
+            f'{reverse("account_login")}?next={reverse("budget_setup")}',
+        )
+
+    def test_login_page_shows_google_option(self):
+        enable_google_oauth_for_tests()
+        response = self.client.get(reverse('account_login'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Continue with Google')
+        self.assertContains(response, 'Sign in')
+
+    def test_login_page_shows_setup_notice_without_google(self):
+        response = self.client.get(reverse('account_login'))
+        self.assertContains(response, 'Google sign-in needs setup')
+        self.assertContains(response, 'Sign in')
 
     def test_budget_setup_saves_profile(self):
         response = create_budget_via_form(self.client)
@@ -117,6 +164,7 @@ class BudgetSetupViewTests(TestCase):
         profile = BudgetProfile.objects.get(name='Jane Doe')
         self.assertEqual(float(profile.income_amount), 2_500_000)
         self.assertEqual(profile.categories.count(), 2)
+        self.assertIsNotNone(profile.user)
 
     def test_budget_setup_edit_shows_delete_option(self):
         create_budget_via_form(self.client)
@@ -126,6 +174,7 @@ class BudgetSetupViewTests(TestCase):
         self.assertContains(response, reverse('budget_delete'))
 
     def test_budget_rejects_over_income(self):
+        login_test_user(self.client)
         response = self.client.post(
             reverse('budget_setup'),
             budget_setup_post_data(income=1_000_000),
@@ -142,6 +191,7 @@ class BudgetSetupViewTests(TestCase):
         self.assertFalse(BudgetProfile.objects.filter(pk=profile.pk).exists())
 
     def test_home_link_points_to_dashboard(self):
+        login_test_user(self.client)
         response = self.client.get(reverse('budget_setup'))
         self.assertContains(response, f'href="{reverse("dashboard")}"')
 
@@ -261,6 +311,7 @@ class ProfileViewTests(TestCase):
         self.assertTrue(profile.mtn_phone.startswith('+256'))
 
     def test_profile_empty_without_budget(self):
+        login_test_user(self.client)
         BudgetProfile.objects.all().delete()
         response = self.client.get(reverse('profile'))
         self.assertContains(response, 'Set up your budget first')
