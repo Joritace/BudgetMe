@@ -126,7 +126,7 @@ class BudgetSetupViewTests(TestCase):
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Sign in')
-        self.assertContains(response, 'Track every shilling in UGX')
+        self.assertContains(response, 'Where did my money go')
         self.assertNotContains(response, 'sidebar-nav')
 
     def test_empty_dashboard_shows_google_when_configured(self):
@@ -154,6 +154,20 @@ class BudgetSetupViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Continue with Google')
         self.assertContains(response, 'Sign in')
+
+    def test_auth_status_for_guest(self):
+        response = self.client.get(reverse('auth_status'))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()['authenticated'])
+
+    def test_auth_status_for_logged_in_user(self):
+        login_test_user(self.client)
+        response = self.client.get(reverse('auth_status'))
+        self.assertTrue(response.json()['authenticated'])
+
+    def test_html_responses_are_not_cached(self):
+        response = self.client.get(reverse('dashboard'))
+        self.assertIn('no-store', response['Cache-Control'])
 
     def test_login_page_shows_setup_notice_without_google(self):
         response = self.client.get(reverse('account_login'))
