@@ -26,8 +26,6 @@ except ImportError:
 # Fetch variables
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Connect to the database
-connection = psycopg2.connect(DATABASE_URL)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
