@@ -47,9 +47,9 @@ def generate_transaction_id(prefix='MM'):
     return f'{prefix}{ts}{uuid.uuid4().hex[:6].upper()}'
 
 
-def get_available_balance(profile):
+def get_available_balance(profile, *, close_periods=True):
     from budgetbuddy.services.savings import get_spendable_balance
-    return get_spendable_balance(profile)
+    return get_spendable_balance(profile, close_periods=close_periods)
 
 
 def transfer_to_dict(transfer):

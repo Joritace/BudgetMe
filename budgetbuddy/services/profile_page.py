@@ -29,7 +29,7 @@ def build_profile_context(profile):
     budget_period = get_budget_period(profile)
     expenses = get_expenses_for_profile(profile, budget_period=budget_period)
     summary = summarize_budget(user, expenses, period=budget_period)
-    available = float(get_available_balance(profile))
+    available = float(get_available_balance(profile, close_periods=False))
     profile_name = profile.name or 'Guest'
 
     top_categories = sorted(

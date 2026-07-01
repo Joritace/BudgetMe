@@ -226,6 +226,18 @@ class BudgetSetupViewTests(TestCase):
         response = self.client.get(reverse('dashboard'))
         self.assertIn('no-store', response['Cache-Control'])
 
+    def test_service_worker_is_served_at_root(self):
+        response = self.client.get(reverse('service_worker'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('javascript', response['Content-Type'])
+        self.assertIn('no-cache', response['Cache-Control'])
+        self.assertContains(response, 'bb-sw-1')
+
+    def test_web_manifest_is_cacheable(self):
+        response = self.client.get(reverse('web_manifest'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('public', response['Cache-Control'])
+
     def test_login_page_shows_setup_notice_without_google(self):
         response = self.client.get(reverse('account_login'))
         self.assertContains(response, 'Google sign-in needs setup')

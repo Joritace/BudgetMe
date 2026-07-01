@@ -31,7 +31,8 @@ def savings_home(request):
             build_guest_context('savings', user=request.user),
         )
 
-    available_balance = get_available_balance(profile)
+    close_periods = request.method == 'POST'
+    available_balance = get_available_balance(profile, close_periods=close_periods)
     user = profile_to_user_dict(profile)
     budget_period = get_budget_period(profile)
     total_savings = get_total_savings(profile)

@@ -155,7 +155,7 @@ def build_dashboard_context(user, expenses, transactions, period='monthly', prof
     )
 
     first_name = user['name'].split()[0] if user.get('name') else 'Friend'
-    total_balance = float(get_spendable_balance(profile)) if profile else max(period_income - data['total_spent'], 0)
+    total_balance = float(get_spendable_balance(profile, close_periods=False)) if profile else max(period_income - data['total_spent'], 0)
     period_savings = savings_in_period(profile, budget_period) if profile and budget_period else 0
     total_savings = get_total_savings(profile) if profile else 0
 

@@ -128,6 +128,9 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ['-occurred_at']
+        indexes = [
+            models.Index(fields=['profile', 'txn_type', '-occurred_at']),
+        ]
 
     def __str__(self):
         sign = '+' if self.txn_type == self.INCOME else '-'
@@ -203,6 +206,9 @@ class SavingsDeposit(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['profile', 'source', '-period_start']),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=['profile', 'period_start'],

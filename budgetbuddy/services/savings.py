@@ -3,6 +3,7 @@
 from datetime import date, timedelta
 from decimal import Decimal
 
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Sum
 
@@ -11,6 +12,8 @@ from budgetbuddy.services.budget_period import get_budget_period
 from budgetbuddy.services.transfers import MIN_TRANSFER_AMOUNT
 
 MIN_SAVINGS_AMOUNT = MIN_TRANSFER_AMOUNT
+MAX_PERIODS_CLOSE_PER_REQUEST = 1
+_PERIOD_CLOSE_CACHE_SECONDS = 60 * 30
 
 
 def deposit_to_dict(deposit):
@@ -71,110 +74,79 @@ def _spent_in_period(profile, period):
     return Decimal(str(total or 0))
 
 
-def _closed_period_starts(profile):
-    return set(
-        profile.savings_deposits.filter(
-            source=SavingsDeposit.PERIOD_END,
-        ).values_list('period_start', flat=True)
-    )
+def _period_close_cache_key(profile):
+    return f'bb:period-close:{profile.pk}:{date.today().isoformat()}'
 
 
-def _pending_ended_periods(profile, today, current, closed_starts):
-    """Ended pay periods that still need closing, walking forward from the last close."""
-    latest_closed_start = (
-        profile.savings_deposits.filter(source=SavingsDeposit.PERIOD_END)
-        .order_by('-period_start')
-        .values_list('period_start', flat=True)
-        .first()
-    )
-    if latest_closed_start:
-        last_closed = get_budget_period(profile, on_date=latest_closed_start)
-        walk_start = last_closed['end'] + timedelta(days=1)
-    else:
-        walk_start = profile.created_at.date()
+MAX_PERIOD_SCAN = 120
 
-    pending = []
-    day = walk_start
+
+def _next_unclosed_period(profile, today, current):
+    """Return at most one ended period that still needs closing."""
     last_check = current['start'] - timedelta(days=1)
-    while day <= last_check:
+    walk_start = profile.created_at.date()
+    if walk_start > last_check:
+        return None
+
+    closed_starts = set(
+        profile.savings_deposits.filter(source=SavingsDeposit.PERIOD_END)
+        .values_list('period_start', flat=True)
+    )
+
+    day = walk_start
+    scanned = 0
+    while day <= last_check and scanned < MAX_PERIOD_SCAN:
+        scanned += 1
         period = get_budget_period(profile, on_date=day)
         if period['end'] >= today:
-            break
+            return None
         if period['start'] not in closed_starts:
-            pending.append(period)
-            closed_starts.add(period['start'])
+            return period
         day = period['end'] + timedelta(days=1)
-    return pending
+    return None
 
 
-def ensure_periods_closed(profile, *, on_date=None):
-    """Move leftover balance into savings when a pay period has ended."""
-    if on_date is None and getattr(profile, '_savings_periods_closed', False):
-        return
+def ensure_periods_closed(profile, *, on_date=None, force=False):
+    """Close at most one ended pay period per request (fast path for navigation)."""
     if on_date is None:
+        if getattr(profile, '_savings_periods_closed', False):
+            return
         profile._savings_periods_closed = True
+        if not force and cache.get(_period_close_cache_key(profile)):
+            return
 
     today = on_date or date.today()
     current = get_budget_period(profile, on_date=today)
-    closed_starts = _closed_period_starts(profile)
-    pending_periods = _pending_ended_periods(profile, today, current, closed_starts)
-    if not pending_periods:
+    period = _next_unclosed_period(profile, today, current)
+    if period is None:
+        if on_date is None:
+            cache.set(_period_close_cache_key(profile), True, _PERIOD_CLOSE_CACHE_SECONDS)
         return
 
-    min_start = min(period['start'] for period in pending_periods)
-    max_end = max(period['end'] for period in pending_periods)
+    spent = _spent_in_period(profile, period)
+    manual = _manual_savings_in_period(profile, period)
     period_income = Decimal(str(profile.income_amount or 0))
-
-    expense_rows = list(
-        Transaction.objects.filter(
-            profile=profile,
-            txn_type=Transaction.EXPENSE,
-            occurred_at__date__gte=min_start,
-            occurred_at__date__lte=max_end,
-        ).values_list('amount', 'occurred_at')
+    remainder = max(period_income - spent - manual, Decimal('0'))
+    SavingsDeposit.objects.create(
+        profile=profile,
+        amount=remainder,
+        source=SavingsDeposit.PERIOD_END,
+        period_start=period['start'],
+        period_end=period['end'],
+        note=(
+            f'Leftover from {period["label"]}'
+            if remainder > 0
+            else f'No leftover from {period["label"]}'
+        ),
     )
-    manual_rows = list(
-        profile.savings_deposits.filter(
-            source=SavingsDeposit.MANUAL,
-            created_at__date__gte=min_start,
-            created_at__date__lte=max_end,
-        ).values_list('amount', 'created_at')
-    )
-
-    to_create = []
-    for period in pending_periods:
-        start = period['start']
-        end = period['end']
-        spent = sum(
-            Decimal(str(amount))
-            for amount, occurred_at in expense_rows
-            if start <= occurred_at.date() <= end
-        )
-        manual = sum(
-            Decimal(str(amount))
-            for amount, created_at in manual_rows
-            if start <= created_at.date() <= end
-        )
-        remainder = max(period_income - spent - manual, Decimal('0'))
-        to_create.append(SavingsDeposit(
-            profile=profile,
-            amount=remainder,
-            source=SavingsDeposit.PERIOD_END,
-            period_start=start,
-            period_end=end,
-            note=(
-                f'Leftover from {period["label"]}'
-                if remainder > 0
-                else f'No leftover from {period["label"]}'
-            ),
-        ))
-
-    SavingsDeposit.objects.bulk_create(to_create)
+    if on_date is None:
+        cache.set(_period_close_cache_key(profile), True, _PERIOD_CLOSE_CACHE_SECONDS)
 
 
-def get_spendable_balance(profile):
+def get_spendable_balance(profile, *, close_periods=True):
     """Income minus spending minus manual savings moved out this period."""
-    ensure_periods_closed(profile)
+    if close_periods:
+        ensure_periods_closed(profile)
     budget_period = get_budget_period(profile)
     manual = _manual_savings_in_period(profile, budget_period)
     period_income = Decimal(str(profile.income_amount or 0))
@@ -188,8 +160,8 @@ def create_manual_savings_deposit(profile, amount, note=''):
     if amount < MIN_SAVINGS_AMOUNT:
         raise ValueError(f'Minimum savings amount is UGX {MIN_SAVINGS_AMOUNT:,.0f}')
 
-    ensure_periods_closed(profile)
-    balance = get_spendable_balance(profile)
+    ensure_periods_closed(profile, force=True)
+    balance = get_spendable_balance(profile, close_periods=False)
     if amount > balance:
         raise ValueError(f'Insufficient balance. Available: UGX {balance:,.0f}')
 
@@ -202,4 +174,5 @@ def create_manual_savings_deposit(profile, amount, note=''):
         period_end=budget_period['end'],
         note=note.strip(),
     )
+    cache.delete(_period_close_cache_key(profile))
     return deposit

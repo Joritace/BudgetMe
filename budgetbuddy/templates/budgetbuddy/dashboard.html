@@ -239,22 +239,4 @@
 {% include "budgetbuddy/partials/bottom_nav.html" %}
 {% endblock %}
 
-{% block extra_js %}
-{% if has_budget %}
-<script>
-(function () {
-    var btn = document.getElementById('budget-see-more');
-    var list = document.getElementById('budget-list');
-    if (!btn || !list) return;
-
-    btn.addEventListener('click', function () {
-        var expanded = list.classList.toggle('is-expanded');
-        btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-        btn.querySelector('.dash-more__label').textContent = expanded ? 'Show less' : 'See more categories';
-        btn.querySelector('.dash-more__count').hidden = expanded;
-        btn.classList.toggle('is-open', expanded);
-    });
-})();
-</script>
-{% endif %}
-{% endblock %}
+{% block extra_js %}{% endblock %}

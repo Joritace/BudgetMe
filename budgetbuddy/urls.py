@@ -5,13 +5,14 @@ from .views.budget import budget_delete, budget_setup
 from .views.dashboard import dashboard_home
 from .views.profile import profile_home
 from .views.partials import dashboard_transactions_partial, transfer_movements_partial
-from .views.pwa import apple_touch_icon, icon_192, icon_512, web_manifest
+from .views.pwa import apple_touch_icon, icon_192, icon_512, service_worker, web_manifest
 from .views.savings import savings_home
 from .views.transfer import transfer_home
 
 urlpatterns = [
     path('', dashboard_home, name='dashboard'),
     path('site.webmanifest', web_manifest, name='web_manifest'),
+    path('sw.js', service_worker, name='service_worker'),
     path('apple-touch-icon.png', apple_touch_icon),
     path('icon-192.png', icon_192),
     path('icon-512.png', icon_512),

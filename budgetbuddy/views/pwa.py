@@ -1,5 +1,6 @@
+from django.contrib.staticfiles import finders
 from django.contrib.staticfiles.storage import staticfiles_storage
-from django.http import JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.http import require_GET
 
@@ -59,4 +60,18 @@ def web_manifest(request):
             ],
         },
         content_type='application/manifest+json',
+        headers={'Cache-Control': 'public, max-age=86400'},
     )
+
+
+@require_GET
+def service_worker(request):
+    """Serve SW at site root so scope covers the whole app."""
+    sw_path = finders.find('budgetbuddy/js/sw.js')
+    if not sw_path:
+        return HttpResponse('// Service worker not found', status=404, content_type='application/javascript')
+
+    response = FileResponse(open(sw_path, 'rb'), content_type='application/javascript; charset=utf-8')
+    response['Cache-Control'] = 'no-cache, max-age=0'
+    response['Service-Worker-Allowed'] = '/'
+    return response

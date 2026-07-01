@@ -31,7 +31,8 @@ def transfer_home(request):
             build_guest_context('transfer', user=request.user),
         )
 
-    available_balance = get_available_balance(profile)
+    close_periods = request.method == 'POST'
+    available_balance = get_available_balance(profile, close_periods=close_periods)
     user = profile_to_user_dict(profile)
 
     if request.method == 'POST':
