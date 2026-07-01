@@ -361,6 +361,9 @@
             var form = event.target;
             if (form.matches('form.sidebar-logout-form, form[action*="logout"]')) {
                 clearServiceWorkerCaches();
+                if (window.BudgetMeRealtime && window.BudgetMeRealtime.stop) {
+                    window.BudgetMeRealtime.stop();
+                }
             }
             if (!form.matches('form.setup-form, form.auth-form, #transfer-form, #savings-form')) {
                 return;
@@ -387,6 +390,118 @@
         });
     }
 
+    function refreshPartialList(selector) {
+        var tabs = document.querySelector(selector);
+        if (!tabs) {
+            return Promise.resolve();
+        }
+        var active = tabs.querySelector('.period-tabs__btn.is-active');
+        var period = active ? active.dataset.period : 'monthly';
+        var target = document.getElementById(tabs.dataset.target);
+        if (!target) {
+            return Promise.resolve();
+        }
+        return fetch(tabs.dataset.endpoint + '?period=' + encodeURIComponent(period), {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+        })
+            .then(function (res) {
+                if (!res.ok) {
+                    throw new Error('Failed');
+                }
+                return res.json();
+            })
+            .then(function (data) {
+                target.innerHTML = data.html;
+            })
+            .catch(function () {});
+    }
+
+    function formatUgx(amount) {
+        return Number(amount || 0).toLocaleString('en-UG', { maximumFractionDigits: 0 });
+    }
+
+    function applyLiveSummary(data) {
+        var currency = data.currency || 'UGX';
+        var balanceEl = document.getElementById('bb-stat-balance');
+        if (balanceEl) {
+            balanceEl.textContent = currency + ' ' + formatUgx(data.total_balance);
+        }
+        var expenseEl = document.getElementById('bb-stat-expense');
+        if (expenseEl) {
+            expenseEl.textContent = '-' + currency + ' ' + formatUgx(data.total_spent);
+        }
+        var usageEl = document.getElementById('bb-stat-usage');
+        if (usageEl) {
+            usageEl.textContent = data.budget_used_percent + '%';
+        }
+        var progressEl = document.getElementById('bb-budget-progress');
+        if (progressEl) {
+            progressEl.value = data.budget_used_percent;
+        }
+        var progressLabel = document.getElementById('bb-budget-progress-label');
+        if (progressLabel) {
+            progressLabel.textContent = data.budget_used_percent + '%';
+        }
+        var availableEls = document.querySelectorAll('#bb-available-balance, .bb-available-balance');
+        availableEls.forEach(function (el) {
+            el.textContent = currency + ' ' + formatUgx(data.available_balance);
+        });
+        var totalSavingsEl = document.getElementById('bb-total-savings');
+        if (totalSavingsEl) {
+            totalSavingsEl.textContent = currency + ' ' + formatUgx(data.total_savings);
+        }
+        var savingsSub = document.getElementById('bb-savings-sub');
+        if (savingsSub && data.period_label) {
+            if (data.saving_goal) {
+                savingsSub.textContent = data.period_label + ' goal: ' + currency + ' '
+                    + formatUgx(data.period_savings) + ' of ' + formatUgx(data.saving_goal)
+                    + ' (' + data.goal_percent + '%)';
+            } else {
+                savingsSub.textContent = data.period_label + ': ' + currency + ' '
+                    + formatUgx(data.period_savings) + ' saved';
+            }
+        }
+        var depositsList = document.getElementById('bb-savings-deposits-list');
+        if (depositsList && data.deposits_html) {
+            depositsList.innerHTML = data.deposits_html;
+        }
+    }
+
+    function refreshFromRealtime() {
+        var summaryUrl = '/api/live/summary/';
+        var cfgEl = document.getElementById('supabase-realtime-config');
+        if (cfgEl) {
+            try {
+                var cfg = JSON.parse(cfgEl.textContent);
+                if (cfg.summaryUrl) {
+                    summaryUrl = cfg.summaryUrl;
+                }
+            } catch (err) {
+                /* ignore */
+            }
+        }
+        var url = summaryUrl;
+        if (document.getElementById('bb-savings-deposits-list')) {
+            url += (url.indexOf('?') === -1 ? '?' : '&') + 'include=deposits';
+        }
+        fetch(url, {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+        })
+            .then(function (res) {
+                if (!res.ok) {
+                    throw new Error('Summary failed');
+                }
+                return res.json();
+            })
+            .then(applyLiveSummary)
+            .catch(function () {});
+
+        refreshPartialList('[data-period-tabs][data-endpoint*="transactions"]');
+        refreshPartialList('[data-period-tabs][data-endpoint*="transfers"]');
+    }
+
     function clearServiceWorkerCaches() {
         if (navigator.serviceWorker && navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHES' });
@@ -406,6 +521,7 @@
         showLoader: showLoader,
         hideLoader: hideLoader,
         bootstrapPage: bootstrapPage,
+        refreshFromRealtime: refreshFromRealtime,
     };
 
     bindGlobalHandlers();

@@ -86,7 +86,7 @@
                     <div class="dash-stat__bubble" aria-hidden="true"><i class="bx bx-wallet"></i></div>
                     <div class="dash-stat__body">
                         <p class="dash-stat__label">Total Balance</p>
-                        <p class="dash-stat__value">{{ data.currency }} {{ total_balance|floatformat:0 }}</p>
+                        <p class="dash-stat__value" id="bb-stat-balance">{{ data.currency }} {{ total_balance|floatformat:0 }}</p>
                         <p class="dash-stat__meta">{{ data.period_label }} · {{ budget_used_percent }}% spent</p>
                     </div>
                 </article>
@@ -94,14 +94,14 @@
                     <div class="dash-stat__bubble" aria-hidden="true"><i class="bx bx-down-arrow-alt"></i></div>
                     <div class="dash-stat__body">
                         <p class="dash-stat__label">Total Expense</p>
-                        <p class="dash-stat__value dash-stat__value--expense">-{{ data.currency }} {{ data.total_spent|floatformat:0 }}</p>
+                        <p class="dash-stat__value dash-stat__value--expense" id="bb-stat-expense">-{{ data.currency }} {{ data.total_spent|floatformat:0 }}</p>
                     </div>
                 </article>
                 <article class="dash-stat dash-stat--usage dash-animate" style="--i: 3">
                     <div class="dash-stat__bubble" aria-hidden="true"><i class="bx bx-pie-chart-alt-2"></i></div>
                     <div class="dash-stat__body">
                         <p class="dash-stat__label">Budget Used</p>
-                        <p class="dash-stat__value">{{ budget_used_percent }}%</p>
+                        <p class="dash-stat__value" id="bb-stat-usage">{{ budget_used_percent }}%</p>
                     </div>
                 </article>
             </div>
@@ -109,9 +109,9 @@
             <div class="dash-hero__progress dash-animate" style="--i: 4">
                 <div class="dash-progress__labels">
                     <span><i class="bx bx-bar-chart-alt-2"></i> {{ budget_period.short_label }} spending</span>
-                    <span>{{ budget_used_percent }}%</span>
+                    <span id="bb-budget-progress-label">{{ budget_used_percent }}%</span>
                 </div>
-                <progress class="dash-progress" value="{{ budget_used_percent }}" max="100" aria-label="Budget used"></progress>
+                <progress class="dash-progress" id="bb-budget-progress" value="{{ budget_used_percent }}" max="100" aria-label="Budget used"></progress>
             </div>
         </div>
     </header>

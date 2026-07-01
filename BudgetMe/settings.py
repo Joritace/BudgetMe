@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import sys
 import dj_database_url
 import psycopg2
 from dotenv import load_dotenv
@@ -153,6 +154,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'budgetbuddy.context_processors.auth_providers',
+                'budgetbuddy.context_processors.supabase_realtime',
             ],
         },
     },
@@ -224,6 +226,9 @@ STORAGES = {
     },
 }
 
+if 'test' in sys.argv:
+    STORAGES['staticfiles']['BACKEND'] = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
 WHITENOISE_MAX_AGE = 60 * 60 * 24 * 365
 
 # BudgetMe — Uganda defaults
@@ -243,3 +248,13 @@ CSRF_COOKIE_SECURE = not DEBUG
 # Render (and similar proxies) terminate TLS — Django must trust X-Forwarded-Proto for secure cookies.
 if RENDER_EXTERNAL_URL or not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Supabase Realtime (browser listens; Django signs JWT for RLS)
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip().rstrip('/')
+SUPABASE_ANON_KEY = (
+    os.environ.get('SUPABASE_ANON_KEY', '') or os.environ.get('SUPABASE_KEY', '')
+).strip()
+SUPABASE_JWT_SECRET = os.environ.get('SUPABASE_JWT_SECRET', '').strip()
+SUPABASE_REALTIME_ENABLED = bool(
+    SUPABASE_URL and SUPABASE_ANON_KEY and SUPABASE_JWT_SECRET
+)

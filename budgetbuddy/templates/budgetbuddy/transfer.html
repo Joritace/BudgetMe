@@ -22,7 +22,7 @@
         <section class="panel balance-banner balance-banner--hero" aria-label="Available balance">
             <div class="balance-banner__body">
                 <p class="balance-label">Available this {{ budget_period.short_label|lower }}</p>
-                <p class="balance-amount">{{ data.currency }} {{ available_balance|floatformat:0 }}</p>
+                <p class="balance-amount" id="bb-available-balance">{{ data.currency }} {{ available_balance|floatformat:0 }}</p>
             </div>
             <div class="balance-banner__icon" aria-hidden="true"><i class="bx bx-wallet"></i></div>
         </section>

@@ -7,6 +7,7 @@ from .views.profile import profile_home
 from .views.partials import dashboard_transactions_partial, transfer_movements_partial
 from .views.pwa import apple_touch_icon, icon_192, icon_512, service_worker, web_manifest
 from .views.savings import savings_home
+from .views.supabase_api import live_summary, supabase_realtime_token
 from .views.transfer import transfer_home
 
 urlpatterns = [
@@ -21,6 +22,8 @@ urlpatterns = [
     path('savings/', savings_home, name='savings'),
     path('api/transactions/', dashboard_transactions_partial, name='api_transactions'),
     path('api/transfers/', transfer_movements_partial, name='api_transfers'),
+    path('api/supabase/realtime-token/', supabase_realtime_token, name='api_supabase_realtime_token'),
+    path('api/live/summary/', live_summary, name='api_live_summary'),
     path('budget/', budget_setup, name='budget_setup'),
     path('budget/delete/', budget_delete, name='budget_delete'),
     path('profile/', profile_home, name='profile'),
