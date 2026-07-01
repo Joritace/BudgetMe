@@ -1,21 +1,25 @@
 {
   "name": "BudgetMe",
   "short_name": "BudgetMe",
+  "description": "Personal budget tracking for Uganda",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#fffafb",
-  "theme_color": "#fffafb",
+  "orientation": "portrait",
+  "background_color": "#e8faf2",
+  "theme_color": "#3ecf8e",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/static/budgetbuddy/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/static/budgetbuddy/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

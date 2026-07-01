@@ -1095,6 +1095,12 @@
         --dash-gutter-right: max(var(--page-gutter-md, 28px), env(safe-area-inset-right, 0px));
     }
 
+    /* Keep hero inside the content column on desktop — negative margins cause horizontal jank */
+    .app-layout .dash-hero {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
     .dash-split {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -1119,6 +1125,17 @@
     .dash {
         --dash-gutter-left: max(var(--page-gutter-lg, 36px), env(safe-area-inset-left, 0px));
         --dash-gutter-right: max(var(--page-gutter-lg, 36px), env(safe-area-inset-right, 0px));
+    }
+
+    /* Reduce continuous GPU animations on larger screens */
+    .dash-float,
+    .dash-hero__orb,
+    .dash-stat__bubble,
+    .dash-tile__deco,
+    .dash-onboard__icon,
+    .dash-onboard__icon-float,
+    .dash-empty__icon {
+        animation: none;
     }
 
     .dash-hero {

@@ -4,10 +4,15 @@ from .views.auth_status import auth_status
 from .views.budget import budget_delete, budget_setup
 from .views.dashboard import dashboard_home
 from .views.profile import profile_home
+from .views.pwa import apple_touch_icon, icon_192, icon_512, web_manifest
 from .views.transfer import transfer_home
 
 urlpatterns = [
     path('', dashboard_home, name='dashboard'),
+    path('site.webmanifest', web_manifest, name='web_manifest'),
+    path('apple-touch-icon.png', apple_touch_icon),
+    path('icon-192.png', icon_192),
+    path('icon-512.png', icon_512),
     path('auth/status/', auth_status, name='auth_status'),
     path('transfer/', transfer_home, name='transfer'),
     path('budget/', budget_setup, name='budget_setup'),

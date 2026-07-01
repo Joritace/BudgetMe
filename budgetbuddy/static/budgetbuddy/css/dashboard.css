@@ -2857,6 +2857,10 @@ progress.budget-bar::-moz-progress-bar {
         padding-bottom: 0;
         padding-left: max(var(--page-gutter-md), env(safe-area-inset-left, 0px));
         padding-right: max(var(--page-gutter-md), env(safe-area-inset-right, 0px));
+        max-width: none;
+        margin: 0;
+        flex: 1;
+        min-width: 0;
     }
 
     .app-layout .page-wrap {
@@ -2927,8 +2931,8 @@ progress.budget-bar::-moz-progress-bar {
         border-radius: 0 0 var(--radius-xl) var(--radius-xl);
     }
 
-    .page-wrap {
-        max-width: 1200px;
+    .page-wrap__inner {
+        max-width: var(--page-max-w);
         margin: 0 auto;
         width: 100%;
     }
@@ -3284,6 +3288,31 @@ a.sidebar-user {
     .profile-main {
         padding-bottom: 36px;
         gap: 18px;
+    }
+}
+
+/* ── PWA / standalone (Add to Home Screen) ───────────────────────────────── */
+@media (display-mode: standalone) {
+    html {
+        overscroll-behavior-y: none;
+    }
+
+    body {
+        overscroll-behavior-y: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .app-layout {
+        min-height: 100dvh;
+        min-height: -webkit-fill-available;
+    }
+
+    .page-wrap {
+        padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    .bottom-nav {
+        padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
     }
 }
 

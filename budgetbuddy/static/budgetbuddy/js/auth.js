@@ -1,7 +1,7 @@
 (function () {
     var AUTH_STATUS_URL = '/auth/status/';
     var HOME_URL = '/';
-    var POLL_MS = 2500;
+    var POLL_MS = 60000;
 
     function isAuthShell() {
         return Boolean(document.querySelector('.auth-shell'));
@@ -66,7 +66,11 @@
         if (!isAuthShell() && !isAppShell()) {
             return;
         }
-        setInterval(syncAuthState, POLL_MS);
+        setInterval(function () {
+            if (document.visibilityState === 'visible') {
+                syncAuthState();
+            }
+        }, POLL_MS);
     }
 
     document.addEventListener('visibilitychange', function () {
