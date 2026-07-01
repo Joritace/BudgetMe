@@ -63,7 +63,7 @@ CATEGORY_ICON_CLASSES = {
     'Utilities': 'bx-bulb',
     'Airtime & Data': 'bx-mobile',
     'School Fees': 'bx-book-open',
-    'Savings (SACCO)': 'bx-piggy-bank',
+    'Savings (SACCO)': 'bxs-coin-stack',
     'Health': 'bx-plus-medical',
     'Entertainment': 'bx-party',
     'default': 'bx-category-alt',
@@ -72,7 +72,7 @@ CATEGORY_ICON_CLASSES = {
 NAV_ITEMS = [
     {'id': 'home', 'label': 'Home', 'icon': 'bx-home-alt', 'url_name': 'dashboard'},
     {'id': 'transfer', 'label': 'Transfer', 'icon': 'bx-transfer-alt', 'url_name': 'transfer'},
-    {'id': 'savings', 'label': 'Savings', 'icon': 'bx-piggy-bank', 'url_name': 'savings'},
+    {'id': 'savings', 'label': 'Savings', 'icon': 'bxs-coin-stack', 'url_name': 'savings'},
     {'id': 'budget', 'label': 'Budget', 'icon': 'bx-wallet', 'url_name': 'budget_setup'},
     {'id': 'profile', 'label': 'Profile', 'icon': 'bx-user-circle', 'url_name': 'profile'},
 ]

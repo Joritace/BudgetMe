@@ -7,10 +7,8 @@ from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 
-from budgetbuddy.models import SavingsDeposit
-from budgetbuddy.services.budget import summarize_budget
+from budgetbuddy.models import SavingsDeposit, Transaction
 from budgetbuddy.services.budget_period import get_budget_period
-from budgetbuddy.services.profile import get_expenses_for_profile, profile_to_user_dict
 from budgetbuddy.services.transfers import MIN_TRANSFER_AMOUNT
 
 MIN_SAVINGS_AMOUNT = MIN_TRANSFER_AMOUNT
@@ -64,22 +62,44 @@ def savings_in_period(profile, period):
     return float(manual + Decimal(str(period_end or 0)))
 
 
+def _spent_in_period(profile, period):
+    total = Transaction.objects.filter(
+        profile=profile,
+        txn_type=Transaction.EXPENSE,
+        occurred_at__date__gte=period['start'],
+        occurred_at__date__lte=period['end'],
+    ).aggregate(total=Sum('amount'))['total']
+    return Decimal(str(total or 0))
+
+
 def _period_remainder(profile, period):
-    user = profile_to_user_dict(profile)
-    expenses = get_expenses_for_profile(profile, budget_period=period)
-    summary = summarize_budget(user, expenses, period=period)
     manual = _manual_savings_in_period(profile, period)
     period_income = Decimal(str(profile.income_amount or 0))
-    spent = Decimal(str(summary['total_spent']))
+    spent = _spent_in_period(profile, period)
     return max(period_income - spent - manual, Decimal('0'))
+
+
+def _closed_period_starts(profile):
+    return set(
+        profile.savings_deposits.filter(
+            source=SavingsDeposit.PERIOD_END,
+        ).values_list('period_start', flat=True)
+    )
 
 
 def ensure_periods_closed(profile, *, on_date=None):
     """Move leftover balance into savings when a pay period has ended."""
+    if on_date is None and getattr(profile, '_savings_periods_closed', False):
+        return
+    if on_date is None:
+        profile._savings_periods_closed = True
+
     today = on_date or date.today()
     current = get_budget_period(profile, on_date=today)
+    closed_starts = _closed_period_starts(profile)
     check_date = current['start'] - timedelta(days=1)
     anchor = profile.created_at.date()
+    pending = []
 
     while check_date >= anchor:
         period = get_budget_period(profile, on_date=check_date)
@@ -87,12 +107,9 @@ def ensure_periods_closed(profile, *, on_date=None):
             check_date = period['start'] - timedelta(days=1)
             continue
 
-        if not profile.savings_deposits.filter(
-            source=SavingsDeposit.PERIOD_END,
-            period_start=period['start'],
-        ).exists():
+        if period['start'] not in closed_starts:
             remainder = _period_remainder(profile, period)
-            SavingsDeposit.objects.create(
+            pending.append(SavingsDeposit(
                 profile=profile,
                 amount=remainder,
                 source=SavingsDeposit.PERIOD_END,
@@ -103,21 +120,22 @@ def ensure_periods_closed(profile, *, on_date=None):
                     if remainder > 0
                     else f'No leftover from {period["label"]}'
                 ),
-            )
+            ))
+            closed_starts.add(period['start'])
 
         check_date = period['start'] - timedelta(days=1)
+
+    if pending:
+        SavingsDeposit.objects.bulk_create(pending)
 
 
 def get_spendable_balance(profile):
     """Income minus spending minus manual savings moved out this period."""
     ensure_periods_closed(profile)
-    user = profile_to_user_dict(profile)
     budget_period = get_budget_period(profile)
-    expenses = get_expenses_for_profile(profile, budget_period=budget_period)
-    summary = summarize_budget(user, expenses, period=budget_period)
     manual = _manual_savings_in_period(profile, budget_period)
-    period_income = Decimal(str(user['period_income']))
-    spent = Decimal(str(summary['total_spent']))
+    period_income = Decimal(str(profile.income_amount or 0))
+    spent = _spent_in_period(profile, budget_period)
     return max(period_income - spent - manual, Decimal('0'))
 
 

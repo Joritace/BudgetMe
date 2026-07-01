@@ -126,6 +126,18 @@
 .dash-float--5 { top: 35%; right: 6%; animation: dash-float 7s ease-in-out infinite 0.6s; font-size: 1.25rem; opacity: 0.2; }
 .dash-float--6 { top: 22%; right: 14%; animation: dash-float-alt 4s ease-in-out infinite 1.5s; font-size: 1.2rem; opacity: 0.18; }
 
+@media (max-width: 767px) {
+    .dash-float,
+    .dash-hero__orb {
+        animation: none !important;
+    }
+
+    .dash-animate {
+        animation: none;
+        opacity: 1;
+    }
+}
+
 .dash-hero__inner {
     position: relative;
     z-index: 1;

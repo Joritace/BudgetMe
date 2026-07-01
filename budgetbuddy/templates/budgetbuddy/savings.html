@@ -9,13 +9,13 @@
 {% block content %}
 <div class="page-inner">
 {% if not has_budget %}
-    {% include "budgetbuddy/partials/page_header.html" with icon="bx-piggy-bank" title="Savings" subtitle="Track money you set aside from each pay period." %}
+    {% include "budgetbuddy/partials/page_header.html" with icon="bxs-coin-stack" title="Savings" subtitle="Track money you set aside from each pay period." %}
     <main class="main page-main">
-        {% include "budgetbuddy/partials/setup_cta.html" with icon="bx-piggy-bank" title="Set up your budget first" body="Create a budget with income and a saving goal before moving money to savings." %}
+        {% include "budgetbuddy/partials/setup_cta.html" with icon="bxs-coin-stack" title="Set up your budget first" body="Create a budget with income and a saving goal before moving money to savings." %}
     </main>
 {% else %}
     {% url 'dashboard' as dashboard_url %}
-    {% include "budgetbuddy/partials/page_header.html" with icon="bx-piggy-bank" title="Savings" back_url=dashboard_url %}
+    {% include "budgetbuddy/partials/page_header.html" with icon="bxs-coin-stack" title="Savings" back_url=dashboard_url %}
     <main class="main page-main">
         {% include "budgetbuddy/partials/messages.html" %}
 
@@ -29,7 +29,7 @@
                 <p class="balance-sub">{{ budget_period.short_label }}: {{ data.currency }} {{ period_savings|floatformat:0 }} saved</p>
                 {% endif %}
             </div>
-            <div class="balance-banner__icon" aria-hidden="true"><i class="bx bx-piggy-bank"></i></div>
+            <div class="balance-banner__icon" aria-hidden="true"><i class="bx bxs-coin-stack"></i></div>
         </section>
 
         <form method="post" class="setup-form" id="savings-form">
@@ -54,7 +54,7 @@
 
                 <div class="form-actions form-actions--inline">
                     <button type="submit" class="btn btn-primary">
-                        <i class="bx bx-piggy-bank"></i> Add to savings
+                        <i class="bx bxs-coin-stack"></i> Add to savings
                     </button>
                 </div>
             </section>
@@ -88,7 +88,7 @@
                 </article>
                 {% empty %}
                 <div class="empty-state">
-                    <i class="bx bx-piggy-bank empty-icon" aria-hidden="true"></i>
+                    <i class="bx bxs-coin-stack empty-icon" aria-hidden="true"></i>
                     <p>No savings yet. Add money from your balance or wait for pay-period leftovers to roll over.</p>
                 </div>
                 {% endfor %}
