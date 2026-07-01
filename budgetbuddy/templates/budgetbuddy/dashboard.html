@@ -87,7 +87,7 @@
                     <div class="dash-stat__body">
                         <p class="dash-stat__label">Total Balance</p>
                         <p class="dash-stat__value">{{ data.currency }} {{ total_balance|floatformat:0 }}</p>
-                        <p class="dash-stat__meta">{{ data.month }} · {{ budget_used_percent }}% spent</p>
+                        <p class="dash-stat__meta">{{ data.period_label }} · {{ budget_used_percent }}% spent</p>
                     </div>
                 </article>
                 <article class="dash-stat dash-stat--expense dash-animate" style="--i: 2">
@@ -108,7 +108,7 @@
 
             <div class="dash-hero__progress dash-animate" style="--i: 4">
                 <div class="dash-progress__labels">
-                    <span><i class="bx bx-bar-chart-alt-2"></i> Monthly spending</span>
+                    <span><i class="bx bx-bar-chart-alt-2"></i> {{ budget_period.short_label }} spending</span>
                     <span>{{ budget_used_percent }}%</span>
                 </div>
                 <progress class="dash-progress" value="{{ budget_used_percent }}" max="100" aria-label="Budget used"></progress>
@@ -162,9 +162,9 @@
                 <header class="dash-card__head">
                     <div>
                         <h2 id="dash-budget-title" class="dash-card__title">
-                            <i class="bx bx-list-check"></i> Monthly Budget
+                            <i class="bx bx-list-check"></i> {{ budget_period.title }} budget
                         </h2>
-                        <p class="dash-card__sub">{{ data.month }} · {{ data.overview|length }} categories</p>
+                        <p class="dash-card__sub">{{ data.period_label }} · {{ data.overview|length }} categories</p>
                     </div>
                     <a href="{% url 'budget_setup' %}" class="dash-card__action"><i class="bx bx-edit"></i> Edit</a>
                 </header>

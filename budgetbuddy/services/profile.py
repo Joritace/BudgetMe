@@ -1,6 +1,7 @@
 """Load and format budget profiles from the database."""
 
 from budgetbuddy.models import BudgetProfile
+from budgetbuddy.services.budget_period import filter_expenses_for_period, get_budget_period
 from budgetbuddy.services.transactions import expenses_from_transactions, get_transactions_for_profile
 
 
@@ -21,33 +22,38 @@ def profile_to_user_dict(profile):
         cat.name: float(cat.allocated_amount)
         for cat in profile.categories.all()
     }
-    monthly = float(profile.normalized_monthly_income())
+    budget_period = get_budget_period(profile)
+    period_income = float(profile.income_amount or 0)
     saving_goal = float(profile.saving_goal_amount) if profile.has_saving_goal else None
 
     return {
         'id': profile.pk,
         'name': profile.name,
-        'monthly_income': monthly,
+        'period_income': period_income,
+        'monthly_income': period_income,
         'income_amount': float(profile.income_amount),
         'income_frequency': profile.income_frequency,
         'income_frequency_label': profile.income_frequency_label,
         'saving_goal_amount': saving_goal,
         'currency': profile.currency,
         'budget_categories': categories,
+        'budget_period': budget_period,
     }
 
 
-def get_expenses_for_profile(profile, year=None, month=None):
+def get_expenses_for_profile(profile, year=None, month=None, *, budget_period=None):
     transactions = get_transactions_for_profile(profile)
     expenses = expenses_from_transactions(transactions)
 
     if year and month:
-        expenses = [
+        return [
             expense for expense in expenses
             if expense['date'].year == year and expense['date'].month == month
         ]
 
-    return expenses
+    if budget_period is None:
+        budget_period = get_budget_period(profile)
+    return filter_expenses_for_period(expenses, budget_period)
 
 
 def savings_progress(profile, expenses):

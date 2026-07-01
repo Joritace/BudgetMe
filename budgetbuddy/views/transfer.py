@@ -8,6 +8,7 @@ from django.views.decorators.http import require_http_methods
 from budgetbuddy.constants import nav_items_for
 from budgetbuddy.forms import TransferForm
 from budgetbuddy.services.page_context import build_guest_context
+from budgetbuddy.services.budget_period import get_budget_period
 from budgetbuddy.services.profile import get_active_profile, profile_to_user_dict
 from budgetbuddy.services.transfers import create_transfer, get_available_balance, get_transfers_for_profile
 
@@ -52,6 +53,7 @@ def transfer_home(request):
         form = TransferForm(profile, available_balance=available_balance)
 
     profile_name = profile.name or 'Guest'
+    budget_period = get_budget_period(profile)
 
     return render(request, 'budgetbuddy/transfer.html', {
         'has_budget': True,
@@ -64,6 +66,7 @@ def transfer_home(request):
         'available_balance': float(available_balance),
         'transfers': get_transfers_for_profile(profile),
         'nav_items': nav_items_for('transfer'),
+        'budget_period': budget_period,
         'profile_phones': {
             'mtn': profile.mtn_phone or '',
             'airtel': profile.airtel_phone or '',

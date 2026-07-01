@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from django.contrib.sites.models import Site
 from django.test import TestCase
@@ -12,10 +12,12 @@ from budgetbuddy.mocks import get_mock_mobile_money, get_mock_transactions, get_
 from budgetbuddy.services import (
     build_dashboard_context,
     build_empty_dashboard_context,
+    get_expenses_for_profile,
     profile_to_user_dict,
     summarize_budget,
     transaction_to_dict,
 )
+from budgetbuddy.services.budget_period import get_budget_period
 from budgetbuddy.tests.helpers import budget_setup_post_data, create_budget_via_form, login_test_user, set_profile_phones
 
 
@@ -31,6 +33,61 @@ def enable_google_oauth_for_tests():
     )
     app.sites.add(site)
     return app
+
+class BudgetPeriodTests(TestCase):
+    def test_monthly_period_is_calendar_month(self):
+        profile = BudgetProfile.objects.create(
+            name='Test',
+            income_amount=2_000_000,
+            income_frequency='monthly',
+        )
+        period = get_budget_period(profile)
+        today = date.today()
+        self.assertEqual(period['start'].day, 1)
+        self.assertEqual(period['start'].month, today.month)
+        self.assertEqual(period['period_income'], 2_000_000)
+
+    def test_biweekly_period_is_fourteen_days(self):
+        profile = BudgetProfile.objects.create(
+            name='Test',
+            income_amount=1_000_000,
+            income_frequency='biweekly',
+        )
+        period = get_budget_period(profile)
+        self.assertEqual((period['end'] - period['start']).days, 13)
+        self.assertEqual(period['period_income'], 1_000_000)
+        self.assertEqual(period['short_label'], 'Pay period')
+
+    def test_biweekly_spending_only_counts_current_period(self):
+        profile = BudgetProfile.objects.create(
+            name='Jane',
+            income_amount=1_000_000,
+            income_frequency='biweekly',
+        )
+        BudgetCategory.objects.create(profile=profile, name='Rent', allocated_amount=500_000)
+        period = get_budget_period(profile)
+        old_day = period['start'] - timedelta(days=1)
+        Transaction.objects.create(
+            profile=profile,
+            txn_type='expense',
+            label='Old rent',
+            category='Rent',
+            amount=200_000,
+            occurred_at=timezone.make_aware(datetime.combine(old_day, datetime.min.time())),
+        )
+        Transaction.objects.create(
+            profile=profile,
+            txn_type='expense',
+            label='Current rent',
+            category='Rent',
+            amount=100_000,
+            occurred_at=timezone.now(),
+        )
+        user = profile_to_user_dict(profile)
+        expenses = get_expenses_for_profile(profile)
+        summary = summarize_budget(user, expenses, period=period)
+        self.assertEqual(summary['total_spent'], 100_000)
+
 
 class BudgetServiceTests(TestCase):
     def test_summarize_budget_calculates_totals(self):
@@ -223,7 +280,7 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, 'Total Expense')
         self.assertContains(response, 'Total Balance')
         self.assertContains(response, 'Saving Goal')
-        self.assertContains(response, 'Monthly Budget')
+        self.assertContains(response, 'budget')
         self.assertContains(response, 'Allocated')
         self.assertContains(response, 'Delete budget')
 
@@ -246,7 +303,7 @@ class TransferViewTests(TestCase):
         response = self.client.get(reverse('transfer'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Record expense')
-        self.assertContains(response, 'Available this month')
+        self.assertContains(response, 'Available this')
         self.assertContains(response, 'Deposit or spend')
 
     def test_transfer_cash_spend_custom_amount(self):
@@ -318,7 +375,7 @@ class ProfileViewTests(TestCase):
         response = self.client.get(reverse('profile'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Jane Doe')
-        self.assertContains(response, 'Mobile money numbers')
+        self.assertContains(response, 'Sign out')
 
     def test_profile_saves_phones(self):
         response = set_profile_phones(self.client)

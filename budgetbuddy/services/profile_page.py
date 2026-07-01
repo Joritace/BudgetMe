@@ -2,6 +2,7 @@
 
 from budgetbuddy.constants import MOBILE_MONEY_PROVIDERS
 from budgetbuddy.services.budget import summarize_budget
+from budgetbuddy.services.budget_period import get_budget_period
 from budgetbuddy.services.profile import get_expenses_for_profile, profile_to_user_dict
 from budgetbuddy.services.transfers import get_available_balance
 
@@ -24,8 +25,9 @@ def phone_status(profile):
 
 def build_profile_context(profile):
     user = profile_to_user_dict(profile)
-    expenses = get_expenses_for_profile(profile)
-    summary = summarize_budget(user, expenses)
+    budget_period = get_budget_period(profile)
+    expenses = get_expenses_for_profile(profile, budget_period=budget_period)
+    summary = summarize_budget(user, expenses, period=budget_period)
     available = float(get_available_balance(profile))
     profile_name = profile.name or 'Guest'
 
@@ -49,16 +51,18 @@ def build_profile_context(profile):
         },
         'data': {
             'currency': profile.currency,
-            'monthly_income': float(profile.normalized_monthly_income()),
+            'period_income': float(profile.income_amount or 0),
             'category_count': profile.categories.count(),
             'member_since': profile.created_at,
             'last_updated': profile.updated_at,
             'saving_goal': float(profile.saving_goal_amount) if profile.has_saving_goal else None,
             'income_amount': float(profile.income_amount),
             'income_frequency_label': profile.income_frequency_label,
+            'budget_period_label': budget_period['label'],
         },
         'budget_snapshot': {
-            'month': summary['month'],
+            'month': summary['period_label'],
             'top_categories': top_categories,
         },
+        'budget_period': budget_period,
     }

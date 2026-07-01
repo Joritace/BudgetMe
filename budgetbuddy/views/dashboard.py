@@ -4,6 +4,7 @@ from django.views.decorators.http import require_http_methods
 
 from budgetbuddy.constants import nav_items_for
 from budgetbuddy.mocks import get_mock_mobile_money
+from budgetbuddy.services.budget_period import default_transaction_period
 from budgetbuddy.services import (
     build_dashboard_context,
     build_empty_dashboard_context,
@@ -26,7 +27,10 @@ def dashboard_home(request):
         context['nav_items'] = nav_items_for('home')
         return render(request, 'budgetbuddy/dashboard.html', context)
 
-    period = request.GET.get('period', 'monthly')
+    period = request.GET.get(
+        'period',
+        default_transaction_period(profile.income_frequency),
+    )
     user = profile_to_user_dict(profile)
     transactions = get_transactions_for_profile(profile)
     expenses = get_expenses_for_profile(profile)

@@ -51,7 +51,7 @@
 
                     {{ data.currency }} budget · {{ data.category_count }} categories
 
-                    {% if data.saving_goal %} · saving {{ data.currency }} {{ data.saving_goal|floatformat:0 }}/mo{% endif %}
+                    {% if data.saving_goal %} · saving {{ data.currency }} {{ data.saving_goal|floatformat:0 }}/period{% endif %}
 
                 </p>
 
@@ -180,7 +180,7 @@
 
                 {% empty %}
 
-                <li class="profile-category-empty">No spending recorded yet this month.</li>
+                <li class="profile-category-empty">No spending recorded yet this period.</li>
 
                 {% endfor %}
 
@@ -273,6 +273,15 @@
         </form>
 
 
+
+        <section class="panel setup-panel profile-signout-panel" aria-label="Sign out">
+            <form method="post" action="{% url 'account_logout' %}" class="profile-logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ghost btn-block-mobile profile-logout-btn">
+                    <i class="bx bx-log-out"></i> Sign out
+                </button>
+            </form>
+        </section>
 
         {% include "budgetbuddy/partials/delete_budget_panel.html" with title="Delete budget & data" description="Removes your budget, categories, transactions, transfers, and profile numbers. This cannot be undone." button_label="Delete all data" confirm_message="Delete everything? Your budget, profile, and all transactions will be removed." aria_label="Delete account data" %}
 

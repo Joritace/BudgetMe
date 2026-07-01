@@ -7,7 +7,7 @@ from django.views.decorators.http import require_http_methods
 from budgetbuddy.constants import nav_items_for
 from budgetbuddy.forms import BudgetCategoryFormSet, BudgetProfileForm, suggested_category_initial
 from budgetbuddy.models import BudgetCategory, BudgetProfile
-from budgetbuddy.services.budget_validation import monthly_income_from, validate_budget_within_income
+from budgetbuddy.services.budget_validation import period_income_from, validate_budget_within_income
 from budgetbuddy.services.profile import default_profile_name, get_active_profile
 
 
@@ -40,16 +40,19 @@ def budget_setup(request):
             income_frequency = form.cleaned_data['income_frequency']
             saving_goal = form.cleaned_data.get('saving_goal_amount')
 
-            is_valid, monthly, planned, categories_total, savings = validate_budget_within_income(
+            is_valid, period_income, planned, categories_total, savings = validate_budget_within_income(
                 income_amount, income_frequency, saving_goal, formset,
             )
 
             if not is_valid:
+                freq_label = dict(form.fields['income_frequency'].choices).get(
+                    income_frequency, income_frequency,
+                )
                 form.add_error(
                     None,
                     f'Your budget total (UGX {categories_total:,.0f} categories + '
                     f'UGX {savings:,.0f} savings = UGX {planned:,.0f}) '
-                    f'cannot exceed your monthly income (UGX {monthly:,.0f}). '
+                    f'cannot exceed your {freq_label.lower()} income (UGX {period_income:,.0f}). '
                     f'Reduce categories or saving goal.',
                 )
             else:
@@ -80,7 +83,7 @@ def budget_setup(request):
     if request.method == 'POST' and form.is_bound:
         try:
             income_preview = float(
-                monthly_income_from(
+                period_income_from(
                     form.data.get('income_amount'),
                     form.data.get('income_frequency', 'monthly'),
                 )
@@ -88,7 +91,7 @@ def budget_setup(request):
         except (TypeError, ValueError):
             pass
     elif profile and not is_new:
-        income_preview = float(profile.normalized_monthly_income())
+        income_preview = float(profile.income_amount or 0)
 
     return render(request, 'budgetbuddy/budget_setup.html', {
         'form': form,
@@ -99,7 +102,7 @@ def budget_setup(request):
         'user': {'name': profile_name},
         'first_name': profile_name.split()[0],
         'data': {'currency': 'UGX'},
-        'monthly_income_preview': income_preview,
+        'income_cap_preview': income_preview,
     })
 
 

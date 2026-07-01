@@ -1,7 +1,15 @@
 from datetime import date
 
+from budgetbuddy.services.budget_period import filter_expenses_for_period
 
-def summarize_budget(user, expenses):
+
+def summarize_budget(user, expenses, period=None):
+    if period:
+        expenses = filter_expenses_for_period(expenses, period)
+        period_label = period['label']
+    else:
+        period_label = date.today().strftime('%B %Y')
+
     totals = {cat: 0.0 for cat in user['budget_categories']}
     for expense in expenses:
         category = expense.get('category')
@@ -32,6 +40,7 @@ def summarize_budget(user, expenses):
         'total_allocated': round(total_allocated, 2),
         'total_spent': round(total_spent, 2),
         'total_remaining': round(total_allocated - total_spent, 2),
-        'month': date.today().strftime('%B %Y'),
+        'month': period_label,
+        'period_label': period_label,
         'currency': user.get('currency', 'UGX'),
     }

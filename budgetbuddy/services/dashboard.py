@@ -4,14 +4,14 @@ from datetime import date, datetime, timedelta
 
 from django.utils import timezone
 
+from budgetbuddy.services.budget_period import (
+    default_transaction_period,
+    get_budget_period,
+    period_choices_for_frequency,
+)
 from budgetbuddy.services.page_context import build_guest_context
 
-PERIOD_CHOICES = ('daily', 'weekly', 'monthly')
-PERIOD_LABELS = {
-    'daily': 'Daily',
-    'weekly': 'Weekly',
-    'monthly': 'Monthly',
-}
+PERIOD_CHOICES = ('daily', 'weekly', 'biweekly', 'monthly')
 
 
 def get_greeting():
@@ -32,24 +32,44 @@ def _parse_transaction_date(transaction):
     return date.today()
 
 
-def filter_transactions_by_period(transactions, period='monthly'):
+def filter_transactions_by_period(transactions, period='monthly', profile=None):
     today = date.today()
     if period == 'daily':
         start = today
+        end = today
     elif period == 'weekly':
         start = today - timedelta(days=6)
+        end = today
+    elif period == 'biweekly':
+        if profile:
+            budget_period = get_budget_period(profile)
+            start = budget_period['start']
+            end = budget_period['end']
+        else:
+            start = today - timedelta(days=13)
+            end = today
     else:
         start = today.replace(day=1)
+        end = today
 
     return [
         txn for txn in transactions
-        if _parse_transaction_date(txn) >= start
+        if start <= _parse_transaction_date(txn) <= end
     ]
 
 
-def get_insights(user, expenses, transactions, profile=None):
+def get_insights(user, expenses, transactions, profile=None, budget_period=None):
+    if budget_period is None and profile is not None:
+        budget_period = get_budget_period(profile)
+
+    if budget_period:
+        from budgetbuddy.services.budget_period import filter_expenses_for_period
+        period_expenses = filter_expenses_for_period(expenses, budget_period)
+    else:
+        period_expenses = expenses
+
     expense_totals = {}
-    for expense in expenses:
+    for expense in period_expenses:
         category = expense.get('category', 'Other')
         expense_totals[category] = expense_totals.get(category, 0) + float(expense.get('amount', 0))
 
@@ -74,7 +94,7 @@ def get_insights(user, expenses, transactions, profile=None):
 
     if profile and profile.has_saving_goal:
         from budgetbuddy.services.profile import savings_progress
-        savings_saved = savings_progress(profile, expenses)
+        savings_saved = savings_progress(profile, period_expenses)
         saving_goal_target = float(profile.saving_goal_amount)
     else:
         savings_saved = expense_totals.get('Savings (SACCO)', 0)
@@ -107,14 +127,22 @@ def build_empty_dashboard_context(request=None):
 def build_dashboard_context(user, expenses, transactions, period='monthly', mobile_money=None, profile=None):
     from budgetbuddy.services.budget import summarize_budget
 
-    period = period if period in PERIOD_CHOICES else 'monthly'
-    filtered = filter_transactions_by_period(transactions, period)
-    data = summarize_budget(user, expenses)
-    insights = get_insights(user, expenses, transactions, profile=profile)
+    budget_period = get_budget_period(profile) if profile else None
+    period_income = user.get('period_income') or user.get('monthly_income', 0)
+    allowed_periods = period_choices_for_frequency(user.get('income_frequency', 'monthly'))
+    period = period if period in allowed_periods else default_transaction_period(
+        user.get('income_frequency', 'monthly'),
+    )
+
+    filtered = filter_transactions_by_period(transactions, period, profile=profile)
+    data = summarize_budget(user, expenses, period=budget_period)
+    insights = get_insights(
+        user, expenses, transactions, profile=profile, budget_period=budget_period,
+    )
 
     budget_used_percent = round(
-        (data['total_spent'] / user['monthly_income'] * 100)
-        if user['monthly_income'] else 0,
+        (data['total_spent'] / period_income * 100)
+        if period_income else 0,
         1,
     )
 
@@ -130,13 +158,13 @@ def build_dashboard_context(user, expenses, transactions, period='monthly', mobi
         'greeting': get_greeting(),
         'first_name': first_name,
         'period': period,
-        'period_choices': PERIOD_LABELS,
+        'period_choices': allowed_periods,
+        'budget_period': budget_period,
         'budget_used_percent': min(budget_used_percent, 100),
         'total_expense': data['total_spent'],
-        'total_balance': max(user['monthly_income'] - data['total_spent'], 0),
+        'total_balance': max(period_income - data['total_spent'], 0),
         'income_display': {
             'amount': user['income_amount'],
             'frequency': user['income_frequency_label'],
-            'monthly_equivalent': user['monthly_income'],
         },
     }

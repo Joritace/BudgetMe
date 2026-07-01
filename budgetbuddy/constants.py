@@ -71,7 +71,6 @@ CATEGORY_ICON_CLASSES = {
 
 NAV_ITEMS = [
     {'id': 'home', 'label': 'Home', 'icon': 'bx-home-alt', 'url_name': 'dashboard'},
-    {'id': 'analytics', 'label': 'Analytics', 'icon': 'bx-bar-chart-alt-2', 'url': '#'},
     {'id': 'transfer', 'label': 'Transfer', 'icon': 'bx-transfer-alt', 'url_name': 'transfer'},
     {'id': 'budget', 'label': 'Budget', 'icon': 'bx-wallet', 'url_name': 'budget_setup'},
     {'id': 'profile', 'label': 'Profile', 'icon': 'bx-user-circle', 'url_name': 'profile'},

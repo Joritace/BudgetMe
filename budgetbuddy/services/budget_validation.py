@@ -1,16 +1,17 @@
-"""Validate that budget allocations fit within income."""
+"""Validate that budget allocations fit within income per pay period."""
 
 from decimal import Decimal
 
-from budgetbuddy.models import BudgetProfile
+
+def period_income_from(income_amount, income_frequency):
+    """Income cap for one budget period (not normalized to monthly)."""
+    del income_frequency  # frequency selects the window, not the cap amount
+    return Decimal(income_amount or 0)
 
 
 def monthly_income_from(income_amount, income_frequency):
-    profile = BudgetProfile(
-        income_amount=income_amount or 0,
-        income_frequency=income_frequency or 'monthly',
-    )
-    return profile.normalized_monthly_income()
+    """Backward-compatible alias used by older call sites."""
+    return period_income_from(income_amount, income_frequency)
 
 
 def categories_total_from_formset(formset):
@@ -26,9 +27,9 @@ def categories_total_from_formset(formset):
 
 
 def validate_budget_within_income(income_amount, income_frequency, saving_goal_amount, formset):
-    monthly = monthly_income_from(income_amount, income_frequency)
+    period_income = period_income_from(income_amount, income_frequency)
     categories_total = categories_total_from_formset(formset)
     savings = Decimal(saving_goal_amount or 0)
     planned_total = categories_total + savings
 
-    return planned_total <= monthly, monthly, planned_total, categories_total, savings
+    return planned_total <= period_income, period_income, planned_total, categories_total, savings
