@@ -42,16 +42,14 @@ class BudgetProfile(models.Model):
     def __str__(self):
         return f'{self.name} ({self.currency} {self.income_amount}/{self.income_frequency})'
 
-    def normalized_monthly_income(self):
-        amount = Decimal(self.income_amount or 0)
-        if self.income_frequency == 'daily':
-            return amount * Decimal('30')
-        if self.income_frequency == 'biweekly':
-            return (amount * Decimal('26')) / Decimal('12')
-        return amount
+    @property
+    def period_income(self):
+        """Income for one pay period — same as income_amount (not converted to monthly)."""
+        return Decimal(self.income_amount or 0)
 
     def save(self, *args, **kwargs):
-        self.monthly_income = self.normalized_monthly_income()
+        # Legacy column: keep in sync with period income (no bi-weekly → monthly conversion).
+        self.monthly_income = self.period_income
         super().save(*args, **kwargs)
 
     @property

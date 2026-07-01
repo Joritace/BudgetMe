@@ -438,7 +438,7 @@
 
 @media (max-width: 899px) {
     .auth-shell__hero {
-        padding: 24px max(var(--page-gutter), env(safe-area-inset-right, 0px))
+        padding: 54px max(var(--page-gutter), env(safe-area-inset-right, 0px))
                  32px max(var(--page-gutter), env(safe-area-inset-left, 0px));
     }
 

@@ -121,22 +121,14 @@ class DashboardServiceTests(TestCase):
 
 
 class ProfileServiceTests(TestCase):
-    def test_profile_monthly_income_daily(self):
+    def test_monthly_income_matches_period_income_on_save(self):
         profile = BudgetProfile.objects.create(
             name='Test',
-            income_amount=100_000,
-            income_frequency='daily',
-        )
-        self.assertEqual(float(profile.normalized_monthly_income()), 3_000_000)
-
-    def test_profile_monthly_income_biweekly(self):
-        profile = BudgetProfile.objects.create(
-            name='Test',
-            income_amount=1_000_000,
+            income_amount=200_000,
             income_frequency='biweekly',
         )
-        monthly = float(profile.normalized_monthly_income())
-        self.assertAlmostEqual(monthly, 1_000_000 * 26 / 12, places=0)
+        self.assertEqual(float(profile.income_amount), 200_000)
+        self.assertEqual(float(profile.monthly_income), 200_000)
 
     def test_profile_to_user_dict(self):
         profile = BudgetProfile.objects.create(
@@ -148,7 +140,7 @@ class ProfileServiceTests(TestCase):
         BudgetCategory.objects.create(profile=profile, name='Rent', allocated_amount=800_000)
         user = profile_to_user_dict(profile)
         self.assertEqual(user['saving_goal_amount'], 500_000)
-        self.assertEqual(user['monthly_income'], 2_500_000)
+        self.assertEqual(user['period_income'], 2_500_000)
 
 
 class TransactionServiceTests(TestCase):

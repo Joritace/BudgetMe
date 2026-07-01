@@ -1,14 +1,9 @@
 (function () {
     var AUTH_STATUS_URL = '/auth/status/';
     var HOME_URL = '/';
-    var POLL_MS = 60000;
 
     function isAuthShell() {
         return Boolean(document.querySelector('.auth-shell'));
-    }
-
-    function isAppShell() {
-        return Boolean(document.querySelector('.sidebar, .bottom-nav, .dash'));
     }
 
     function fetchAuthState() {
@@ -26,16 +21,12 @@
         });
     }
 
-    function syncAuthState() {
-        return fetchAuthState().then(function (data) {
-            if (!data) {
-                return;
-            }
-            if (isAuthShell() && data.authenticated) {
-                window.location.replace(HOME_URL);
-                return;
-            }
-            if (isAppShell() && !data.authenticated) {
+    function redirectIfLoggedIn() {
+        if (!isAuthShell()) {
+            return;
+        }
+        fetchAuthState().then(function (data) {
+            if (data && data.authenticated) {
                 window.location.replace(HOME_URL);
             }
         });
@@ -55,45 +46,23 @@
                 }
                 submit.disabled = true;
                 submit.setAttribute('aria-busy', 'true');
-                var label = submit.innerHTML;
-                submit.dataset.authSubmitLabel = label;
+                submit.dataset.authSubmitLabel = submit.innerHTML;
                 submit.innerHTML = '<i class="bx bx-loader-alt bx-spin" aria-hidden="true"></i> Signing in…';
             });
         });
     }
 
-    function startPolling() {
-        if (!isAuthShell() && !isAppShell()) {
-            return;
+    function init() {
+        bindLoginForms();
+        if (isAuthShell()) {
+            // After OAuth redirect or returning to login while already signed in.
+            setTimeout(redirectIfLoggedIn, 1200);
         }
-        setInterval(function () {
-            if (document.visibilityState === 'visible') {
-                syncAuthState();
-            }
-        }, POLL_MS);
     }
 
-    document.addEventListener('visibilitychange', function () {
-        if (document.visibilityState === 'visible') {
-            syncAuthState();
-        }
-    });
-
-    window.addEventListener('pageshow', function (event) {
-        if (event.persisted) {
-            syncAuthState();
-        }
-    });
-
-    window.addEventListener('focus', syncAuthState);
-
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-            bindLoginForms();
-            startPolling();
-        });
+        document.addEventListener('DOMContentLoaded', init);
     } else {
-        bindLoginForms();
-        startPolling();
+        init();
     }
 })();

@@ -26,8 +26,8 @@
         <div class="page-wrap">
             {% block content %}{% endblock %}
         </div>
-        {% block mobile_nav %}{% endblock %}
     </div>
+    {% block mobile_nav %}{% endblock %}
     <script src="{% static 'budgetbuddy/js/ugx_amounts.js' %}"></script>
     <script src="{% static 'budgetbuddy/js/auth.js' %}"></script>
     {% block extra_js %}{% endblock %}

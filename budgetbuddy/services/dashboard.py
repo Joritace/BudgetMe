@@ -128,7 +128,7 @@ def build_dashboard_context(user, expenses, transactions, period='monthly', mobi
     from budgetbuddy.services.budget import summarize_budget
 
     budget_period = get_budget_period(profile) if profile else None
-    period_income = user.get('period_income') or user.get('monthly_income', 0)
+    period_income = user.get('period_income') or user.get('income_amount', 0)
     allowed_periods = period_choices_for_frequency(user.get('income_frequency', 'monthly'))
     period = period if period in allowed_periods else default_transaction_period(
         user.get('income_frequency', 'monthly'),

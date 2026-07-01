@@ -30,7 +30,6 @@ def profile_to_user_dict(profile):
         'id': profile.pk,
         'name': profile.name,
         'period_income': period_income,
-        'monthly_income': period_income,
         'income_amount': float(profile.income_amount),
         'income_frequency': profile.income_frequency,
         'income_frequency_label': profile.income_frequency_label,

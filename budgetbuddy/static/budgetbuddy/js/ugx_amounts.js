@@ -10,7 +10,6 @@
 
     function setAmount(input, value) {
         input.value = value <= 0 ? '' : String(value);
-        input.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
     function stepAmount(input, direction) {
@@ -28,54 +27,23 @@
         }
         input.dataset.ugxBound = '1';
 
-        var lastValue = null;
-        var keyUsed = false;
+        var stepOnArrows = input.getAttribute('data-ugx-step-arrows') !== 'false';
 
-        input.addEventListener('focus', function () {
-            lastValue = parseAmount(input);
-        });
+        if (!stepOnArrows) {
+            return;
+        }
 
         input.addEventListener('keydown', function (e) {
             if (e.key === 'ArrowUp') {
                 e.preventDefault();
                 stepAmount(input, 1);
-                lastValue = parseAmount(input);
                 return;
             }
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 stepAmount(input, -1);
-                lastValue = parseAmount(input);
-                return;
             }
-            keyUsed = true;
         });
-
-        input.addEventListener('input', function () {
-            var step = parseInt(input.getAttribute('data-ugx-step') || '1000', 10);
-            var current = parseAmount(input);
-
-            if (!keyUsed && lastValue !== null && current !== null) {
-                var diff = current - lastValue;
-                if (Math.abs(diff) === 1) {
-                    var next = Math.max(0, lastValue + (diff > 0 ? step : -step));
-                    setAmount(input, next);
-                    current = parseAmount(input);
-                }
-            }
-
-            keyUsed = false;
-            lastValue = current;
-        });
-
-        input.addEventListener('wheel', function (e) {
-            if (document.activeElement !== input) {
-                return;
-            }
-            e.preventDefault();
-            stepAmount(input, e.deltaY < 0 ? 1 : -1);
-            lastValue = parseAmount(input);
-        }, { passive: false });
     }
 
     function init() {

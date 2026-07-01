@@ -11,7 +11,7 @@ def get_mock_user(user_id=None):
     return {
         'id': user_id or 1,
         'name': 'Sarah Nakato',
-        'monthly_income': 2_500_000,
+        'period_income': 2_500_000,
         'income_amount': 2_500_000,
         'income_frequency': 'monthly',
         'income_frequency_label': 'Monthly',

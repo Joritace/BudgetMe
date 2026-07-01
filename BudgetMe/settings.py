@@ -96,6 +96,8 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_LOGIN_ON_SIGNUP = True
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_ADAPTER = 'budgetbuddy.adapters.BudgetAccountAdapter'
+# Keep users signed in when the PWA is closed (iOS treats each launch as a new session otherwise).
+ACCOUNT_SESSION_REMEMBER = True
 SOCIALACCOUNT_ADAPTER = 'budgetbuddy.adapters.BudgetSocialAccountAdapter'
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
@@ -221,3 +223,17 @@ STORAGES = {
 # BudgetMe — Uganda defaults
 BUDGETME_CURRENCY = 'UGX'
 BUDGETME_COUNTRY = 'Uganda'
+
+# Sessions & cookies — required for iOS/Android home-screen (PWA) login persistence.
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 90
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = not DEBUG
+
+# Render (and similar proxies) terminate TLS — Django must trust X-Forwarded-Proto for secure cookies.
+if RENDER_EXTERNAL_URL or not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

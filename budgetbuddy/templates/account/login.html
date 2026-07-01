@@ -16,7 +16,7 @@
 <div class="auth-divider" role="presentation"><span>or use email</span></div>
 {% endif %}
 
-<form method="post" action="{% url 'dashboard' %}" class="auth-form" novalidate>
+<form method="post" action="{% url 'account_login' %}" class="auth-form" novalidate>
     {% csrf_token %}
     <input type="hidden" name="next" value="{% url 'dashboard' %}">
 

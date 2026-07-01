@@ -30,6 +30,7 @@ class BudgetProfileForm(forms.ModelForm):
         widget=forms.NumberInput(attrs=_ugx_number_attrs(
             placeholder='e.g. 2500000',
             min=0,
+            **{'data-ugx-step-arrows': 'false'},
         )),
     )
     income_frequency = forms.ChoiceField(
@@ -42,10 +43,11 @@ class BudgetProfileForm(forms.ModelForm):
         min_value=0,
         max_digits=12,
         decimal_places=0,
-        label='Saving goal per month (UGX, optional)',
+        label='Saving goal per pay period (UGX, optional)',
         widget=forms.NumberInput(attrs=_ugx_number_attrs(
             placeholder='Leave blank if none',
             min=0,
+            **{'data-ugx-step-arrows': 'false'},
         )),
     )
 

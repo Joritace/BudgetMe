@@ -5,13 +5,8 @@ from decimal import Decimal
 
 def period_income_from(income_amount, income_frequency):
     """Income cap for one budget period (not normalized to monthly)."""
-    del income_frequency  # frequency selects the window, not the cap amount
+    del income_frequency
     return Decimal(income_amount or 0)
-
-
-def monthly_income_from(income_amount, income_frequency):
-    """Backward-compatible alias used by older call sites."""
-    return period_income_from(income_amount, income_frequency)
 
 
 def categories_total_from_formset(formset):
