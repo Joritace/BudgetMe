@@ -1,0 +1,104 @@
+{% extends "budgetbuddy/base.html" %}
+
+{% block title %}Savings{% endblock %}
+
+{% block sidebar %}
+{% include "budgetbuddy/partials/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="page-inner">
+{% if not has_budget %}
+    {% include "budgetbuddy/partials/page_header.html" with icon="bx-piggy-bank" title="Savings" subtitle="Track money you set aside from each pay period." %}
+    <main class="main page-main">
+        {% include "budgetbuddy/partials/setup_cta.html" with icon="bx-piggy-bank" title="Set up your budget first" body="Create a budget with income and a saving goal before moving money to savings." %}
+    </main>
+{% else %}
+    {% url 'dashboard' as dashboard_url %}
+    {% include "budgetbuddy/partials/page_header.html" with icon="bx-piggy-bank" title="Savings" back_url=dashboard_url %}
+    <main class="main page-main">
+        {% include "budgetbuddy/partials/messages.html" %}
+
+        <section class="panel balance-banner balance-banner--hero savings-total-banner" aria-label="Total savings">
+            <div class="balance-banner__body">
+                <p class="balance-label">Total saved</p>
+                <p class="balance-amount">{{ data.currency }} {{ total_savings|floatformat:0 }}</p>
+                {% if saving_goal %}
+                <p class="balance-sub">{{ budget_period.short_label }} goal: {{ data.currency }} {{ period_savings|floatformat:0 }} of {{ saving_goal|floatformat:0 }} ({{ goal_percent }}%)</p>
+                {% else %}
+                <p class="balance-sub">{{ budget_period.short_label }}: {{ data.currency }} {{ period_savings|floatformat:0 }} saved</p>
+                {% endif %}
+            </div>
+            <div class="balance-banner__icon" aria-hidden="true"><i class="bx bx-piggy-bank"></i></div>
+        </section>
+
+        <form method="post" class="setup-form" id="savings-form">
+            {% csrf_token %}
+            <section class="panel setup-panel">
+                <h2 class="panel-title"><i class="bx bx-plus-circle" aria-hidden="true"></i> Add to savings</h2>
+                <p class="panel-hint">Moves money from your available balance ({{ data.currency }} {{ available_balance|floatformat:0 }} left this {{ budget_period.short_label|lower }}) into your savings pot.</p>
+                {% include "budgetbuddy/partials/form_errors.html" with errors=form.non_field_errors %}
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.amount.id_for_label }}">{{ form.amount.label }}</label>
+                        {{ form.amount }}
+                        {{ form.amount.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.note.id_for_label }}">{{ form.note.label }}</label>
+                        {{ form.note }}
+                        {{ form.note.errors }}
+                    </div>
+                </div>
+
+                <div class="form-actions form-actions--inline">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-piggy-bank"></i> Add to savings
+                    </button>
+                </div>
+            </section>
+        </form>
+
+        <section class="panel setup-panel" aria-label="Savings history">
+            <h2 class="panel-title"><i class="bx bx-history" aria-hidden="true"></i> Savings history</h2>
+            <div class="transactions transactions--cards">
+                {% for deposit in deposits %}
+                <article class="transaction-item savings-item">
+                    <div class="txn-icon txn-icon--savings">
+                        <i class="bx {% if deposit.is_period_end %}bx-calendar-check{% else %}bx-down-arrow-circle{% endif %}" aria-hidden="true"></i>
+                    </div>
+                    <div class="txn-details">
+                        <p class="txn-label">
+                            {% if deposit.is_period_end %}
+                            Pay period remainder
+                            {% else %}
+                            Manual deposit
+                            {% endif %}
+                        </p>
+                        <p class="txn-time">
+                            {{ deposit.created_at|date:"M j, Y · H:i" }}
+                            {% if deposit.note %} · {{ deposit.note }}{% endif %}
+                        </p>
+                        {% if deposit.period_start and deposit.period_end %}
+                        <p class="transfer-ref">{{ deposit.period_start|date:"M j" }} – {{ deposit.period_end|date:"M j, Y" }}</p>
+                        {% endif %}
+                    </div>
+                    <p class="txn-amount positive">+{{ data.currency }} {{ deposit.amount|floatformat:0 }}</p>
+                </article>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="bx bx-piggy-bank empty-icon" aria-hidden="true"></i>
+                    <p>No savings yet. Add money from your balance or wait for pay-period leftovers to roll over.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block mobile_nav %}
+{% include "budgetbuddy/partials/bottom_nav.html" %}
+{% endblock %}

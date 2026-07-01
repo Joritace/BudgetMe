@@ -93,8 +93,8 @@ def get_insights(user, expenses, transactions, profile=None, budget_period=None)
         saving_goal_target = user['budget_categories'].get('Savings (SACCO)', 0)
 
     if profile and profile.has_saving_goal:
-        from budgetbuddy.services.profile import savings_progress
-        savings_saved = savings_progress(profile, period_expenses)
+        from budgetbuddy.services.savings import savings_in_period
+        savings_saved = savings_in_period(profile, budget_period) if budget_period else 0
         saving_goal_target = float(profile.saving_goal_amount)
     else:
         savings_saved = expense_totals.get('Savings (SACCO)', 0)
@@ -146,7 +146,12 @@ def build_dashboard_context(user, expenses, transactions, period='monthly', mobi
         1,
     )
 
+    from budgetbuddy.services.savings import get_spendable_balance, get_total_savings, savings_in_period
+
     first_name = user['name'].split()[0] if user.get('name') else 'Friend'
+    total_balance = float(get_spendable_balance(profile)) if profile else max(period_income - data['total_spent'], 0)
+    period_savings = savings_in_period(profile, budget_period) if profile and budget_period else 0
+    total_savings = get_total_savings(profile) if profile else 0
 
     return {
         'has_budget': True,
@@ -162,7 +167,9 @@ def build_dashboard_context(user, expenses, transactions, period='monthly', mobi
         'budget_period': budget_period,
         'budget_used_percent': min(budget_used_percent, 100),
         'total_expense': data['total_spent'],
-        'total_balance': max(period_income - data['total_spent'], 0),
+        'total_balance': total_balance,
+        'total_savings': total_savings,
+        'period_savings': period_savings,
         'income_display': {
             'amount': user['income_amount'],
             'frequency': user['income_frequency_label'],

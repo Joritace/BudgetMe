@@ -44,12 +44,20 @@ class BudgetProfile(models.Model):
 
     @property
     def period_income(self):
-        """Income for one pay period — same as income_amount (not converted to monthly)."""
+        """Income for one pay period — same as income_amount."""
         return Decimal(self.income_amount or 0)
 
+    def monthly_equivalent(self):
+        """Approximate calendar-month income from the pay period amount."""
+        amount = Decimal(self.income_amount or 0)
+        if self.income_frequency == 'biweekly':
+            return amount * Decimal('2')
+        if self.income_frequency == 'daily':
+            return amount * Decimal('30')
+        return amount
+
     def save(self, *args, **kwargs):
-        # Legacy column: keep in sync with period income (no bi-weekly → monthly conversion).
-        self.monthly_income = self.period_income
+        self.monthly_income = self.monthly_equivalent()
         super().save(*args, **kwargs)
 
     @property
@@ -169,3 +177,43 @@ class MobileMoneyTransaction(models.Model):
 
     def __str__(self):
         return f'{self.get_provider_display()} — {self.currency} {self.amount}'
+
+
+class SavingsDeposit(models.Model):
+    """Money moved from spendable balance into the user's savings pot."""
+
+    MANUAL = 'manual'
+    PERIOD_END = 'period_end'
+    SOURCE_CHOICES = [
+        (MANUAL, 'Manual'),
+        (PERIOD_END, 'Pay period remainder'),
+    ]
+
+    profile = models.ForeignKey(
+        BudgetProfile,
+        on_delete=models.CASCADE,
+        related_name='savings_deposits',
+    )
+    amount = models.DecimalField(max_digits=12, decimal_places=0)
+    source = models.CharField(max_length=12, choices=SOURCE_CHOICES)
+    note = models.CharField(max_length=255, blank=True, default='')
+    period_start = models.DateField(null=True, blank=True)
+    period_end = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['profile', 'period_start'],
+                condition=models.Q(source='period_end'),
+                name='unique_period_end_savings_per_profile',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.get_source_display()} — {self.amount}'
+
+    @property
+    def source_label(self):
+        return self.get_source_display()

@@ -5,6 +5,7 @@ from budgetbuddy.services.budget import summarize_budget
 from budgetbuddy.services.budget_period import get_budget_period
 from budgetbuddy.services.profile import get_expenses_for_profile, profile_to_user_dict
 from budgetbuddy.services.transfers import get_available_balance
+from budgetbuddy.services.savings import get_total_savings
 
 
 def phone_status(profile):
@@ -44,6 +45,7 @@ def build_profile_context(profile):
         'phone_status': phone_status(profile),
         'stats': {
             'available_balance': available,
+            'total_savings': get_total_savings(profile),
             'total_spent': summary['total_spent'],
             'total_allocated': summary['total_allocated'],
             'transaction_count': profile.transactions.count(),

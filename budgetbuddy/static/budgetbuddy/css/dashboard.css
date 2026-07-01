@@ -3390,3 +3390,31 @@ a.sidebar-user {
         -webkit-print-color-adjust: exact;
     }
 }
+
+.dash-tile__link {
+    display: contents;
+    color: inherit;
+    text-decoration: none;
+}
+
+.balance-sub,
+.panel-hint {
+    margin: 0.35rem 0 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.savings-total-banner .balance-amount {
+    color: var(--green-dark);
+}
+
+.txn-icon--savings {
+    background: rgba(62, 207, 142, 0.15);
+    color: var(--green-dark);
+}
+
+.savings-item .txn-amount.positive {
+    color: var(--green-dark);
+    font-weight: 600;
+}

@@ -8,9 +8,6 @@ from django.db import transaction
 from django.utils import timezone
 
 from budgetbuddy.models import MobileMoneyTransaction, Transaction
-from budgetbuddy.services.budget import summarize_budget
-from budgetbuddy.services.budget_period import get_budget_period
-from budgetbuddy.services.profile import get_expenses_for_profile, profile_to_user_dict
 
 UG_PHONE_PATTERN = re.compile(r'^(\+?256|0)?(7\d{8})$')
 MIN_TRANSFER_AMOUNT = Decimal('500')
@@ -51,12 +48,8 @@ def generate_transaction_id(prefix='MM'):
 
 
 def get_available_balance(profile):
-    user = profile_to_user_dict(profile)
-    budget_period = get_budget_period(profile)
-    expenses = get_expenses_for_profile(profile, budget_period=budget_period)
-    summary = summarize_budget(user, expenses, period=budget_period)
-    period_income = user['period_income']
-    return max(Decimal(str(period_income)) - Decimal(str(summary['total_spent'])), Decimal('0'))
+    from budgetbuddy.services.savings import get_spendable_balance
+    return get_spendable_balance(profile)
 
 
 def transfer_to_dict(transfer):

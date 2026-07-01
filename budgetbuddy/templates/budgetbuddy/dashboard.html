@@ -123,6 +123,7 @@
             </h2>
             <div class="dash-bento__grid">
                 <article class="dash-tile dash-tile--savings dash-animate" style="--i: 7">
+                    <a href="{% url 'savings' %}" class="dash-tile__link">
                     <div class="dash-tile__ring">
                         <svg viewBox="0 0 72 72" aria-hidden="true" style="--progress: {{ insights.saving_goal_percent }}">
                             <circle class="dash-ring-bg" cx="36" cy="36" r="30"/>
@@ -140,6 +141,7 @@
                         {% endif %}
                     </div>
                     <i class="bx bx-piggy-bank dash-tile__deco" aria-hidden="true"></i>
+                    </a>
                 </article>
 
                 <article class="dash-tile dash-tile--income dash-animate" style="--i: 8">

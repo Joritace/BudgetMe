@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import BudgetCategory, BudgetProfile, Expense, MobileMoneyTransaction, Transaction
+from .models import BudgetCategory, BudgetProfile, Expense, MobileMoneyTransaction, SavingsDeposit, Transaction
 
 
 class BudgetCategoryInline(admin.TabularInline):
@@ -36,3 +36,9 @@ class ExpenseAdmin(admin.ModelAdmin):
 class MobileMoneyTransactionAdmin(admin.ModelAdmin):
     list_display = ('transaction_id', 'provider', 'direction', 'amount', 'status', 'timestamp')
     list_filter = ('provider', 'direction', 'status')
+
+
+@admin.register(SavingsDeposit)
+class SavingsDepositAdmin(admin.ModelAdmin):
+    list_display = ('profile', 'amount', 'source', 'period_start', 'created_at')
+    list_filter = ('source', 'created_at')

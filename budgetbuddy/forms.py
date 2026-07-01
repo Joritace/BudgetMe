@@ -220,3 +220,37 @@ class TransferForm(forms.Form):
         if self.profile and not self.profile.categories.filter(name=category).exists():
             raise forms.ValidationError('Choose a category from your budget.')
         return category
+
+
+class SavingsDepositForm(forms.Form):
+    amount = forms.DecimalField(
+        min_value=MIN_TRANSFER_AMOUNT,
+        max_digits=12,
+        decimal_places=0,
+        label='Amount to save (UGX)',
+        widget=forms.NumberInput(attrs=_ugx_number_attrs(
+            placeholder='From your available balance',
+            **{'data-ugx-step-arrows': 'false'},
+        )),
+    )
+    note = forms.CharField(
+        required=False,
+        max_length=255,
+        label='Note (optional)',
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'e.g. SACCO contribution',
+        }),
+    )
+
+    def __init__(self, available_balance=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.available_balance = available_balance
+
+    def clean_amount(self):
+        amount = self.cleaned_data['amount']
+        if self.available_balance is not None and amount > self.available_balance:
+            raise forms.ValidationError(
+                f'Insufficient balance. Available: UGX {self.available_balance:,.0f}.'
+            )
+        return amount

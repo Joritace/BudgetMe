@@ -121,13 +121,21 @@ class DashboardServiceTests(TestCase):
 
 
 class ProfileServiceTests(TestCase):
-    def test_monthly_income_matches_period_income_on_save(self):
+    def test_biweekly_monthly_income_is_double_period(self):
         profile = BudgetProfile.objects.create(
             name='Test',
             income_amount=200_000,
             income_frequency='biweekly',
         )
         self.assertEqual(float(profile.income_amount), 200_000)
+        self.assertEqual(float(profile.monthly_income), 400_000)
+
+    def test_monthly_income_equals_period_for_monthly_frequency(self):
+        profile = BudgetProfile.objects.create(
+            name='Test',
+            income_amount=200_000,
+            income_frequency='monthly',
+        )
         self.assertEqual(float(profile.monthly_income), 200_000)
 
     def test_profile_to_user_dict(self):
