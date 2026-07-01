@@ -1,7 +1,9 @@
 {% if messages %}
-<ul class="messages" aria-live="polite">
+<ul class="messages" id="bb-messages" aria-live="polite">
     {% for message in messages %}
     <li class="message message--{{ message.tags|default:'success' }}">{{ message }}</li>
     {% endfor %}
 </ul>
+{% else %}
+<ul class="messages" id="bb-messages" aria-live="polite" hidden></ul>
 {% endif %}

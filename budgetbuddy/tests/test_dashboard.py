@@ -318,6 +318,23 @@ class TransferViewTests(TestCase):
         self.assertContains(response, 'Available this')
         self.assertContains(response, 'Deposit or spend')
 
+    def test_transfer_ajax_returns_json(self):
+        response = self.client.post(
+            reverse('transfer'),
+            {
+                'direction': 'withdraw',
+                'provider': 'cash',
+                'amount': '5000',
+                'category': 'Food & Market',
+            },
+            HTTP_X_BB_AJAX='1',
+            HTTP_ACCEPT='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['ok'])
+        self.assertIn('message', data)
+
     def test_transfer_cash_spend_custom_amount(self):
         response = self.client.post(reverse('transfer'), {
             'direction': 'withdraw',

@@ -8,6 +8,7 @@ from django.views.decorators.http import require_http_methods
 
 from budgetbuddy.constants import nav_items_for
 from budgetbuddy.forms import TransferForm
+from budgetbuddy.views.http_helpers import ajax_form_errors, ajax_success, is_bb_ajax
 from budgetbuddy.services.budget_period import (
     default_transaction_period,
     get_budget_period,
@@ -49,13 +50,15 @@ def transfer_home(request):
                     note=form.cleaned_data.get('note', ''),
                 )
                 action = 'Spend' if mm_txn.direction == 'withdraw' else 'Deposit'
-                messages.success(
-                    request,
-                    f'{action} of UGX {mm_txn.amount:,.0f} recorded. Ref: {mm_txn.transaction_id}',
-                )
+                msg = f'{action} of UGX {mm_txn.amount:,.0f} recorded. Ref: {mm_txn.transaction_id}'
+                if is_bb_ajax(request):
+                    return ajax_success(msg)
+                messages.success(request, msg)
                 return redirect('transfer')
             except ValueError as exc:
                 form.add_error(None, str(exc))
+        if is_bb_ajax(request):
+            return ajax_form_errors(form)
     else:
         form = TransferForm(profile, available_balance=available_balance)
 

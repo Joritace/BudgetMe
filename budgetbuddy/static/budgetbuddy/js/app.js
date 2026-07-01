@@ -110,15 +110,22 @@
                 return res.json();
             })
             .then(function (data) {
-                if (!target) {
+                var el = document.getElementById(targetId);
+                if (!el) {
                     return;
                 }
-                target.classList.remove('is-loading');
-                target.innerHTML = data.html;
-                target.classList.add('is-entering');
-                window.setTimeout(function () {
-                    target.classList.remove('is-entering');
-                }, 350);
+                el.classList.remove('is-loading');
+                swapPartialHtml(el, data.html);
+                el = document.getElementById(targetId);
+                if (el) {
+                    el.classList.add('is-entering');
+                    window.setTimeout(function () {
+                        var current = document.getElementById(targetId);
+                        if (current) {
+                            current.classList.remove('is-entering');
+                        }
+                    }, 350);
+                }
                 if (subtitle && data.label) {
                     var prefix = tabs.dataset.subtitlePrefix || 'Recent · ';
                     subtitle.textContent = prefix + data.label;
@@ -365,7 +372,12 @@
                     window.BudgetMeRealtime.stop();
                 }
             }
-            if (!form.matches('form.setup-form, form.auth-form, #transfer-form, #savings-form')) {
+            if (form.matches('#transfer-form, #savings-form')) {
+                event.preventDefault();
+                submitAjaxForm(form);
+                return;
+            }
+            if (!form.matches('form.setup-form, form.auth-form')) {
                 return;
             }
             if (form.dataset.noLoader === 'true') {
@@ -373,6 +385,91 @@
             }
             showLoaderDelayed('Saving…', 'Almost there', 500);
         });
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function showFlashMessage(text, type) {
+        var container = document.getElementById('bb-messages');
+        if (!container) {
+            return;
+        }
+        container.hidden = false;
+        container.innerHTML = '<li class="message message--' + (type || 'success') + '">'
+            + escapeHtml(text) + '</li>';
+        window.setTimeout(function () {
+            container.hidden = true;
+            container.innerHTML = '';
+        }, 6000);
+    }
+
+    function swapPartialHtml(target, html) {
+        if (!target) {
+            return;
+        }
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var fresh = doc.querySelector('[data-swap-content]') || doc.body.firstElementChild;
+        if (fresh) {
+            target.replaceWith(fresh);
+        } else {
+            target.innerHTML = html;
+        }
+    }
+
+    function submitAjaxForm(form) {
+        showLoader('Saving…', 'Almost there');
+        var submitBtn = form.querySelector('[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+        }
+        fetch(form.getAttribute('action') || window.location.pathname, {
+            method: 'POST',
+            body: new FormData(form),
+            credentials: 'same-origin',
+            headers: {
+                'X-BB-Ajax': '1',
+                Accept: 'application/json',
+            },
+        })
+            .then(function (res) {
+                return res.json().then(function (data) {
+                    return { ok: res.ok, data: data };
+                });
+            })
+            .then(function (result) {
+                hideLoader();
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                }
+                if (result.ok && result.data.ok) {
+                    showFlashMessage(result.data.message || 'Saved.');
+                    form.reset();
+                    if (form.id === 'transfer-form') {
+                        var provider = document.getElementById('id_provider');
+                        if (provider) {
+                            provider.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }
+                    clearServiceWorkerCaches();
+                    refreshFromRealtime();
+                    return;
+                }
+                showFlashMessage(
+                    (result.data && result.data.message) || 'Please check the form and try again.',
+                    'error'
+                );
+            })
+            .catch(function () {
+                hideLoader();
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                }
+                showFlashMessage('Could not save. Check your connection.', 'error');
+            });
     }
 
     function bootstrapPage() {
@@ -412,7 +509,7 @@
                 return res.json();
             })
             .then(function (data) {
-                target.innerHTML = data.html;
+                swapPartialHtml(target, data.html);
             })
             .catch(function () {});
     }

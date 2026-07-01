@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 
 from budgetbuddy.constants import nav_items_for
 from budgetbuddy.forms import SavingsDepositForm
+from budgetbuddy.views.http_helpers import ajax_form_errors, ajax_success, is_bb_ajax
 from budgetbuddy.services.budget_period import get_budget_period
 from budgetbuddy.services.page_context import build_guest_context
 from budgetbuddy.services.profile import get_active_profile, profile_to_user_dict
@@ -48,13 +49,15 @@ def savings_home(request):
                     amount=form.cleaned_data['amount'],
                     note=form.cleaned_data.get('note', ''),
                 )
-                messages.success(
-                    request,
-                    f'UGX {deposit.amount:,.0f} moved to savings.',
-                )
+                msg = f'UGX {deposit.amount:,.0f} moved to savings.'
+                if is_bb_ajax(request):
+                    return ajax_success(msg)
+                messages.success(request, msg)
                 return redirect('savings')
             except ValueError as exc:
                 form.add_error(None, str(exc))
+        if is_bb_ajax(request):
+            return ajax_form_errors(form)
     else:
         form = SavingsDepositForm(available_balance=available_balance)
 

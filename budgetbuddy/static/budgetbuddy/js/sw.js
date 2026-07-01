@@ -1,7 +1,7 @@
 /* BudgetMe service worker — instant PWA shell on cold start. */
 'use strict';
 
-var SW_VERSION = 'bb-sw-1';
+var SW_VERSION = 'bb-sw-2';
 var STATIC_CACHE = SW_VERSION + '-static';
 var PAGE_CACHE = SW_VERSION + '-pages';
 
@@ -145,10 +145,5 @@ self.addEventListener('fetch', function (event) {
         return;
     }
 
-    if (isTurboRequest(request)) {
-        event.respondWith(networkFirst(request));
-        return;
-    }
-
-    event.respondWith(staleWhileRevalidate(request));
+    event.respondWith(networkFirst(request));
 });
