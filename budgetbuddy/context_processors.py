@@ -1,9 +1,9 @@
 """Template context processors for BudgetMe."""
 
-from budgetbuddy.services.google_oauth import is_google_oauth_configured
+from django.conf import settings
 
 
 def auth_providers(request):
     return {
-        'google_oauth_configured': is_google_oauth_configured(),
+        'google_oauth_configured': getattr(settings, 'GOOGLE_OAUTH_CONFIGURED', False),
     }

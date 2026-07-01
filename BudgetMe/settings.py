@@ -165,7 +165,11 @@ WSGI_APPLICATION = 'BudgetMe.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.parse(os.environ.get("DATABASE_URL"))
+    'default': dj_database_url.parse(
+        os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -220,6 +224,8 @@ STORAGES = {
     },
 }
 
+WHITENOISE_MAX_AGE = 60 * 60 * 24 * 365
+
 # BudgetMe — Uganda defaults
 BUDGETME_CURRENCY = 'UGX'
 BUDGETME_COUNTRY = 'Uganda'
@@ -230,7 +236,7 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SAVE_EVERY_REQUEST = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = not DEBUG
 

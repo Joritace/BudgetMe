@@ -75,6 +75,33 @@ body.app-body {
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+body.is-navigating {
+    cursor: progress;
+}
+
+body.is-navigating .page-wrap {
+    opacity: 0.92;
+}
+
+@keyframes nav-progress {
+    0% { transform: scaleX(0); transform-origin: left; }
+    50% { transform: scaleX(0.65); transform-origin: left; }
+    100% { transform: scaleX(1); transform-origin: left; }
+}
+
+body.is-navigating::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--green);
+    z-index: 10001;
+    animation: nav-progress 1.4s ease-in-out infinite;
+    pointer-events: none;
+}
+
 img,
 svg {
     display: block;
@@ -3421,6 +3448,47 @@ a.sidebar-user {
     font-size: 0.85rem;
     color: var(--text-muted);
     line-height: 1.4;
+}
+
+.panel-head-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.panel-head-row .panel-title {
+    margin: 0;
+}
+
+.panel-sub {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.panel-body-spaced {
+    margin-top: 14px;
+}
+
+.txn-icon--provider {
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+}
+
+.visually-hidden select,
+.sr-only select {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
 }
 
 .savings-total-banner .balance-amount {

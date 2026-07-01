@@ -71,11 +71,15 @@ def transfer_to_dict(transfer):
     }
 
 
-def get_transfers_for_profile(profile, limit=20):
-    return [
-        transfer_to_dict(txn)
-        for txn in profile.mobile_money_transactions.all()[:limit]
-    ]
+def get_transfers_for_profile(profile, limit=20, *, start_date=None, end_date=None):
+    qs = profile.mobile_money_transactions.order_by('-timestamp')
+    if start_date is not None:
+        qs = qs.filter(timestamp__date__gte=start_date)
+    if end_date is not None:
+        qs = qs.filter(timestamp__date__lte=end_date)
+    if limit is not None:
+        qs = qs[:limit]
+    return [transfer_to_dict(txn) for txn in qs]
 
 
 def _build_label(direction, provider):

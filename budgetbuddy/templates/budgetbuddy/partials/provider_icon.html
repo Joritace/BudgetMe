@@ -1,0 +1,10 @@
+{% load static %}
+{% if provider == 'mtn' or provider_key == 'mtn' %}
+<img src="{% static 'budgetbuddy/icons/providers/mtn.svg' %}" alt="MTN Mobile Money" class="provider-icon provider-icon--mtn" width="40" height="40">
+{% elif provider == 'airtel' or provider_key == 'airtel' %}
+<img src="{% static 'budgetbuddy/icons/providers/airtel.svg' %}" alt="Airtel Money" class="provider-icon provider-icon--airtel" width="40" height="40">
+{% elif provider == 'cash' or provider_key == 'cash' %}
+<img src="{% static 'budgetbuddy/icons/providers/cash.svg' %}" alt="Cash" class="provider-icon provider-icon--cash" width="40" height="40">
+{% else %}
+<span class="provider-icon provider-icon--default" aria-hidden="true"><i class="bx bx-mobile-alt"></i></span>
+{% endif %}

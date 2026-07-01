@@ -2,6 +2,7 @@
 
 from datetime import date, datetime, timedelta
 
+from django.db.models import Sum
 from django.utils import timezone
 
 from budgetbuddy.services.budget_period import (
@@ -62,11 +63,7 @@ def get_insights(user, expenses, transactions, profile=None, budget_period=None)
     if budget_period is None and profile is not None:
         budget_period = get_budget_period(profile)
 
-    if budget_period:
-        from budgetbuddy.services.budget_period import filter_expenses_for_period
-        period_expenses = filter_expenses_for_period(expenses, budget_period)
-    else:
-        period_expenses = expenses
+    period_expenses = expenses
 
     expense_totals = {}
     for expense in period_expenses:
@@ -82,11 +79,21 @@ def get_insights(user, expenses, transactions, profile=None, budget_period=None)
 
     today = date.today()
     week_start = today - timedelta(days=7)
-    revenue_last_week = sum(
-        float(txn.get('amount', 0))
-        for txn in transactions
-        if txn.get('type') == 'income' and _parse_transaction_date(txn) >= week_start
-    )
+    if profile is not None:
+        from budgetbuddy.models import Transaction
+        revenue_last_week = float(
+            Transaction.objects.filter(
+                profile=profile,
+                txn_type=Transaction.INCOME,
+                occurred_at__date__gte=week_start,
+            ).aggregate(total=Sum('amount'))['total'] or 0
+        )
+    else:
+        revenue_last_week = sum(
+            float(txn.get('amount', 0))
+            for txn in transactions
+            if txn.get('type') == 'income' and _parse_transaction_date(txn) >= week_start
+        )
 
     saving_goal_target = user.get('saving_goal_amount')
     if not saving_goal_target:
@@ -124,8 +131,9 @@ def build_empty_dashboard_context(request=None):
     return ctx
 
 
-def build_dashboard_context(user, expenses, transactions, period='monthly', mobile_money=None, profile=None):
+def build_dashboard_context(user, expenses, transactions, period='monthly', profile=None):
     from budgetbuddy.services.budget import summarize_budget
+    from budgetbuddy.services.savings import get_spendable_balance, get_total_savings, savings_in_period
 
     budget_period = get_budget_period(profile) if profile else None
     period_income = user.get('period_income') or user.get('income_amount', 0)
@@ -146,8 +154,6 @@ def build_dashboard_context(user, expenses, transactions, period='monthly', mobi
         1,
     )
 
-    from budgetbuddy.services.savings import get_spendable_balance, get_total_savings, savings_in_period
-
     first_name = user['name'].split()[0] if user.get('name') else 'Friend'
     total_balance = float(get_spendable_balance(profile)) if profile else max(period_income - data['total_spent'], 0)
     period_savings = savings_in_period(profile, budget_period) if profile and budget_period else 0
@@ -159,7 +165,6 @@ def build_dashboard_context(user, expenses, transactions, period='monthly', mobi
         'data': data,
         'insights': insights,
         'transactions': filtered,
-        'mobile_money': mobile_money,
         'greeting': get_greeting(),
         'first_name': first_name,
         'period': period,

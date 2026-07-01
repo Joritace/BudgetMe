@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Airtel">
+  <rect width="48" height="48" rx="12" fill="#ED1C24"/>
+  <circle cx="24" cy="24" r="11" fill="none" stroke="#fff" stroke-width="3"/>
+  <path d="M16 28c4-8 12-8 16 0" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

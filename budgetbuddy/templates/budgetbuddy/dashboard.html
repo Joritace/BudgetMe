@@ -222,44 +222,12 @@
                         <h2 id="dash-txn-title" class="dash-card__title">
                             <i class="bx bx-transfer-alt"></i> Transactions
                         </h2>
-                        <p class="dash-card__sub">Recent · {% for key, label in period_choices.items %}{% if period == key %}{{ label }}{% endif %}{% endfor %}</p>
+                        <p class="dash-card__sub" id="dash-txn-subtitle">Recent · {% for key, label in period_choices.items %}{% if period == key %}{{ label }}{% endif %}{% endfor %}</p>
                     </div>
-                    <nav class="dash-period" aria-label="Filter by period">
-                        {% for key, label in period_choices.items %}
-                        <a href="?period={{ key }}"
-                           class="dash-period__tab {% if period == key %}is-active{% endif %}"
-                           {% if period == key %}aria-current="page"{% endif %}>{{ label }}</a>
-                        {% endfor %}
-                    </nav>
+                    {% include "budgetbuddy/partials/period_tabs.html" with endpoint=transactions_partial_url target_id="dash-txns-list" subtitle_id="dash-txn-subtitle" period_choices=period_choices period=period %}
                 </header>
 
-                <div class="dash-txns">
-                    {% for txn in transactions %}
-                    <article class="dash-txn" style="--ti: {{ forloop.counter }}">
-                        <div class="dash-txn__icon txn-icon txn-icon--{{ txn.icon }}">
-                            <i class="bx {{ txn.icon|transaction_icon }}"></i>
-                        </div>
-                        <div class="dash-txn__body">
-                            <p class="dash-txn__label">{{ txn.label }}</p>
-                            <p class="dash-txn__time"><i class="bx bx-time-five"></i> {{ txn.datetime|date:"M j · H:i" }}</p>
-                        </div>
-                        <div class="dash-txn__right">
-                            <span class="dash-txn__type {% if txn.type == 'income' %}dash-txn__type--in{% else %}dash-txn__type--out{% endif %}">
-                                {% if txn.type == 'income' %}<i class="bx bx-plus"></i> Income{% else %}<i class="bx bx-minus"></i> Expense{% endif %}
-                            </span>
-                            <p class="dash-txn__amt {% if txn.type == 'expense' %}dash-txn__amt--neg{% else %}dash-txn__amt--pos{% endif %}">
-                                {% if txn.type == 'expense' %}-{% endif %}{{ data.currency }} {{ txn.amount|floatformat:0 }}
-                            </p>
-                        </div>
-                    </article>
-                    {% empty %}
-                    <div class="dash-empty">
-                        <i class="bx bx-receipt dash-empty__icon"></i>
-                        <p>No transactions for this period.</p>
-                        <a href="{% url 'transfer' %}" class="btn btn-primary btn-sm">Record a transfer</a>
-                    </div>
-                    {% endfor %}
-                </div>
+                {% include "budgetbuddy/partials/dash_transactions.html" with currency=data.currency %}
             </section>
         </div>
     </main>

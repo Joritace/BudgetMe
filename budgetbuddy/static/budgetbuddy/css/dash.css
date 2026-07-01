@@ -131,11 +131,6 @@
     .dash-hero__orb {
         animation: none !important;
     }
-
-    .dash-animate {
-        animation: none;
-        opacity: 1;
-    }
 }
 
 .dash-hero__inner {

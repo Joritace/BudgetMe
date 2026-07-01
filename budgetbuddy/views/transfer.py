@@ -3,12 +3,18 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from budgetbuddy.constants import nav_items_for
 from budgetbuddy.forms import TransferForm
+from budgetbuddy.services.budget_period import (
+    default_transaction_period,
+    get_budget_period,
+    period_choices_for_frequency,
+)
 from budgetbuddy.services.page_context import build_guest_context
-from budgetbuddy.services.budget_period import get_budget_period
+from budgetbuddy.services.period_filter import transaction_window
 from budgetbuddy.services.profile import get_active_profile, profile_to_user_dict
 from budgetbuddy.services.transfers import create_transfer, get_available_balance, get_transfers_for_profile
 
@@ -54,6 +60,17 @@ def transfer_home(request):
 
     profile_name = profile.name or 'Guest'
     budget_period = get_budget_period(profile)
+    period = request.GET.get(
+        'period',
+        default_transaction_period(profile.income_frequency),
+    )
+    start_date, end_date = transaction_window(profile, period)
+    transfers = get_transfers_for_profile(
+        profile,
+        limit=30,
+        start_date=start_date,
+        end_date=end_date,
+    )
 
     return render(request, 'budgetbuddy/transfer.html', {
         'has_budget': True,
@@ -64,7 +81,10 @@ def transfer_home(request):
         'first_name': profile_name.split()[0],
         'data': {'currency': profile.currency},
         'available_balance': float(available_balance),
-        'transfers': get_transfers_for_profile(profile),
+        'transfers': transfers,
+        'period': period,
+        'period_choices': period_choices_for_frequency(profile.income_frequency),
+        'transfers_partial_url': reverse('api_transfers'),
         'nav_items': nav_items_for('transfer'),
         'budget_period': budget_period,
         'profile_phones': {

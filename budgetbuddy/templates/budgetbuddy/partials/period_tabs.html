@@ -1,0 +1,17 @@
+{% load budgetbuddy_tags %}
+<nav class="period-tabs dash-period"
+     data-period-tabs
+     data-endpoint="{{ endpoint }}"
+     data-target="{{ target_id }}"
+     data-subtitle="{{ subtitle_id }}"
+     data-subtitle-prefix="{{ subtitle_prefix|default:'Recent · ' }}"
+     aria-label="Filter by period"
+     style="--tab-count: {{ period_choices|length }}">
+    <span class="period-tabs__slider" data-period-slider aria-hidden="true"></span>
+    {% for key, label in period_choices.items %}
+    <button type="button"
+            class="period-tabs__btn dash-period__tab {% if period == key %}is-active{% endif %}"
+            data-period="{{ key }}"
+            {% if period == key %}aria-current="true"{% endif %}>{{ label }}</button>
+    {% endfor %}
+</nav>

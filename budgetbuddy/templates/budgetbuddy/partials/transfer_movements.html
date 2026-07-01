@@ -1,0 +1,30 @@
+<div class="transactions transactions--cards swap-content" id="transfer-txns-list" data-swap-content>
+    {% for transfer in transfers %}
+    <article class="transaction-item transfer-item stagger-in" style="--i: {{ forloop.counter }}">
+        <div class="txn-icon txn-icon--provider">
+            {% include "budgetbuddy/partials/provider_icon.html" with provider_key=transfer.provider_key %}
+        </div>
+        <div class="txn-details">
+            <p class="txn-label">{{ transfer.direction_label }} · {{ transfer.provider }}</p>
+            <p class="txn-time">
+                {% if transfer.is_cash %}
+                Cash
+                {% else %}
+                {{ transfer.phone_number }}
+                {% endif %}
+                · {{ transfer.timestamp|date:"M j, H:i" }}
+            </p>
+            <p class="transfer-ref">Ref: {{ transfer.transaction_id }}</p>
+        </div>
+        <span class="transfer-status transfer-status--{{ transfer.status }}">{{ transfer.status_label }}</span>
+        <p class="txn-amount {% if transfer.is_deposit %}positive{% else %}negative{% endif %}">
+            {% if transfer.is_deposit %}+{% else %}-{% endif %}{{ transfer.currency }} {{ transfer.amount|floatformat:0 }}
+        </p>
+    </article>
+    {% empty %}
+    <div class="empty-state">
+        <i class="bx bx-transfer-alt empty-icon" aria-hidden="true"></i>
+        <p>No movements for this period.</p>
+    </div>
+    {% endfor %}
+</div>

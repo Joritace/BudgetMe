@@ -1,0 +1,32 @@
+{% load budgetbuddy_tags %}
+<div class="dash-txns swap-content" id="dash-txns-list" data-swap-content>
+    {% for txn in transactions %}
+    <article class="dash-txn stagger-in" style="--i: {{ forloop.counter }}">
+        <div class="dash-txn__icon txn-icon txn-icon--{{ txn.icon }}">
+            {% if txn.provider_key %}
+            {% include "budgetbuddy/partials/provider_icon.html" with provider_key=txn.provider_key %}
+            {% else %}
+            <i class="bx {{ txn.icon|transaction_icon }}"></i>
+            {% endif %}
+        </div>
+        <div class="dash-txn__body">
+            <p class="dash-txn__label">{{ txn.label }}</p>
+            <p class="dash-txn__time"><i class="bx bx-time-five"></i> {{ txn.datetime|date:"M j · H:i" }}</p>
+        </div>
+        <div class="dash-txn__right">
+            <span class="dash-txn__type {% if txn.type == 'income' %}dash-txn__type--in{% else %}dash-txn__type--out{% endif %}">
+                {% if txn.type == 'income' %}<i class="bx bx-plus"></i> Income{% else %}<i class="bx bx-minus"></i> Expense{% endif %}
+            </span>
+            <p class="dash-txn__amt {% if txn.type == 'expense' %}dash-txn__amt--neg{% else %}dash-txn__amt--pos{% endif %}">
+                {% if txn.type == 'expense' %}-{% endif %}{{ currency }} {{ txn.amount|floatformat:0 }}
+            </p>
+        </div>
+    </article>
+    {% empty %}
+    <div class="dash-empty">
+        <i class="bx bx-receipt dash-empty__icon"></i>
+        <p>No transactions for this period.</p>
+        <a href="{% url 'transfer' %}" class="btn btn-primary btn-sm">Record a transfer</a>
+    </div>
+    {% endfor %}
+</div>

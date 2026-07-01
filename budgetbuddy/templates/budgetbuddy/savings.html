@@ -16,7 +16,7 @@
 {% else %}
     {% url 'dashboard' as dashboard_url %}
     {% include "budgetbuddy/partials/page_header.html" with icon="bxs-coin-stack" title="Savings" back_url=dashboard_url %}
-    <main class="main page-main">
+    <main class="main page-main page-enter">
         {% include "budgetbuddy/partials/messages.html" %}
 
         <section class="panel balance-banner balance-banner--hero savings-total-banner" aria-label="Total savings">

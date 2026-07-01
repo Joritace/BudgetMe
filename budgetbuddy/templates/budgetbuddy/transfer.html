@@ -16,7 +16,7 @@
 {% else %}
     {% url 'dashboard' as dashboard_url %}
     {% include "budgetbuddy/partials/page_header.html" with icon="bx-transfer-alt" title="Transfer" back_url=dashboard_url %}
-    <main class="main page-main">
+    <main class="main page-main page-enter">
         {% include "budgetbuddy/partials/messages.html" %}
 
         <section class="panel balance-banner balance-banner--hero" aria-label="Available balance">
@@ -54,9 +54,23 @@
                 </div>
 
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label for="{{ form.provider.id_for_label }}">{{ form.provider.label }}</label>
-                        {{ form.provider }}
+                    <div class="form-group form-group--full">
+                        <span class="form-label">{{ form.provider.label }}</span>
+                        <div class="provider-picker" id="provider-picker" role="group" aria-label="Payment method">
+                            <button type="button" class="provider-picker__option" data-provider="mtn" aria-pressed="false">
+                                {% include "budgetbuddy/partials/provider_icon.html" with provider_key="mtn" %}
+                                <span class="provider-picker__label">MTN MoMo</span>
+                            </button>
+                            <button type="button" class="provider-picker__option" data-provider="airtel" aria-pressed="false">
+                                {% include "budgetbuddy/partials/provider_icon.html" with provider_key="airtel" %}
+                                <span class="provider-picker__label">Airtel</span>
+                            </button>
+                            <button type="button" class="provider-picker__option" data-provider="cash" aria-pressed="false">
+                                {% include "budgetbuddy/partials/provider_icon.html" with provider_key="cash" %}
+                                <span class="provider-picker__label">Cash</span>
+                            </button>
+                        </div>
+                        <div class="sr-only">{{ form.provider }}</div>
                         {{ form.provider.errors }}
                     </div>
                     <div class="form-group">
@@ -97,36 +111,13 @@
         </form>
 
         <section class="panel setup-panel" aria-label="Recent movements">
-            <h2 class="panel-title"><i class="bx bx-history" aria-hidden="true"></i> Recent movements</h2>
-            <div class="transactions transactions--cards">
-                {% for transfer in transfers %}
-                <article class="transaction-item transfer-item">
-                    <div class="txn-icon {% if transfer.is_cash %}txn-icon--cash{% else %}txn-icon--mobile_money{% endif %}">
-                        <i class="bx {% if transfer.is_cash %}bx-money{% else %}bx-mobile-alt{% endif %}" aria-hidden="true"></i>
-                    </div>
-                    <div class="txn-details">
-                        <p class="txn-label">{{ transfer.direction_label }} · {{ transfer.provider }}</p>
-                        <p class="txn-time">
-                            {% if transfer.is_cash %}
-                            <i class="bx bx-wallet" aria-hidden="true"></i> Cash
-                            {% else %}
-                            <i class="bx bx-phone" aria-hidden="true"></i> {{ transfer.phone_number }}
-                            {% endif %}
-                            · {{ transfer.timestamp|date:"M j, H:i" }}
-                        </p>
-                        <p class="transfer-ref">Ref: {{ transfer.transaction_id }}</p>
-                    </div>
-                    <span class="transfer-status transfer-status--{{ transfer.status }}">{{ transfer.status_label }}</span>
-                    <p class="txn-amount {% if transfer.is_deposit %}positive{% else %}negative{% endif %}">
-                        {% if transfer.is_deposit %}+{% else %}-{% endif %}{{ transfer.currency }} {{ transfer.amount|floatformat:0 }}
-                    </p>
-                </article>
-                {% empty %}
-                <div class="empty-state">
-                    <i class="bx bx-transfer-alt empty-icon" aria-hidden="true"></i>
-                    <p>No movements yet. Record your first deposit or spend above.</p>
-                </div>
-                {% endfor %}
+            <div class="panel-head-row">
+                <h2 class="panel-title"><i class="bx bx-history" aria-hidden="true"></i> Recent movements</h2>
+                <p class="panel-sub" id="transfer-txn-subtitle">{% for key, label in period_choices.items %}{% if period == key %}{{ label }}{% endif %}{% endfor %}</p>
+            </div>
+            {% include "budgetbuddy/partials/period_tabs.html" with endpoint=transfers_partial_url target_id="transfer-txns-list" subtitle_id="transfer-txn-subtitle" subtitle_prefix="" period_choices=period_choices period=period %}
+            <div class="panel-body-spaced">
+                {% include "budgetbuddy/partials/transfer_movements.html" %}
             </div>
         </section>
     </main>

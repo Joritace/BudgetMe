@@ -1,10 +1,13 @@
+from datetime import date, timedelta
+
 from allauth.account.views import LoginView
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from budgetbuddy.constants import nav_items_for
-from budgetbuddy.mocks import get_mock_mobile_money
-from budgetbuddy.services.budget_period import default_transaction_period
+from budgetbuddy.services.budget_period import default_transaction_period, get_budget_period
+from budgetbuddy.services.period_filter import transaction_window
 from budgetbuddy.services import (
     build_dashboard_context,
     build_empty_dashboard_context,
@@ -31,18 +34,24 @@ def dashboard_home(request):
         'period',
         default_transaction_period(profile.income_frequency),
     )
+    budget_period = get_budget_period(profile)
     user = profile_to_user_dict(profile)
-    transactions = get_transactions_for_profile(profile)
-    expenses = get_expenses_for_profile(profile)
-    mobile_money = get_mock_mobile_money(profile.pk)
+    expenses = get_expenses_for_profile(profile, budget_period=budget_period)
+    start_date, end_date = transaction_window(profile, period)
+    transactions = get_transactions_for_profile(
+        profile,
+        start_date=start_date,
+        end_date=end_date,
+        limit=40,
+    )
 
     context = build_dashboard_context(
         user, expenses, transactions,
         period=period,
-        mobile_money=mobile_money,
         profile=profile,
     )
     context['nav_items'] = nav_items_for('home')
     context['is_authenticated'] = request.user.is_authenticated
+    context['transactions_partial_url'] = reverse('api_transactions')
 
     return render(request, 'budgetbuddy/dashboard.html', context)
