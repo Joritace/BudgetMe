@@ -149,7 +149,7 @@ def build_dashboard_context(user, expenses, transactions, period='monthly', prof
     )
 
     budget_used_percent = round(
-        (data['total_spent'] / period_income * 100)
+        ((data['total_spent'] + data['total_savings']) / period_income * 100)
         if period_income else 0,
         1,
     )
