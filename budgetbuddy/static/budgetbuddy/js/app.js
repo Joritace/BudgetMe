@@ -334,13 +334,29 @@
     }
 
     function initPageEnter() {
-        var page = document.querySelector('.dash, .page-inner');
+        var page = document.querySelector('.dash, .page-inner, .page-main.page-enter');
         if (!page) {
             return;
         }
         page.classList.remove('page-enter');
         void page.offsetWidth;
         page.classList.add('page-enter');
+        initPageAnimations();
+    }
+
+    function initPageAnimations() {
+        document.querySelectorAll('.bb-animate, .dash-animate').forEach(function (el) {
+            el.style.animation = 'none';
+            void el.offsetWidth;
+            el.style.animation = '';
+        });
+        document.querySelectorAll('.stagger-in').forEach(function (group) {
+            group.querySelectorAll('[style*="--i"]').forEach(function (child) {
+                child.style.animation = 'none';
+                void child.offsetWidth;
+                child.style.animation = '';
+            });
+        });
     }
 
     function bindGlobalHandlers() {
@@ -510,6 +526,7 @@
             })
             .then(function (data) {
                 swapPartialHtml(target, data.html);
+                initPageAnimations();
             })
             .catch(function () {});
     }
@@ -563,6 +580,7 @@
         if (depositsList && data.deposits_html) {
             depositsList.innerHTML = data.deposits_html;
         }
+        initPageAnimations();
     }
 
     function refreshFromRealtime() {
@@ -619,6 +637,7 @@
         hideLoader: hideLoader,
         bootstrapPage: bootstrapPage,
         refreshFromRealtime: refreshFromRealtime,
+        initPageAnimations: initPageAnimations,
     };
 
     bindGlobalHandlers();

@@ -3491,8 +3491,37 @@ a.sidebar-user {
     border: 0;
 }
 
+.savings-total-banner.balance-banner--hero {
+    background: linear-gradient(145deg, #ff9f1a 0%, #e85d04 48%, #c44d00 100%);
+    box-shadow: 0 10px 32px rgba(200, 77, 0, 0.35);
+}
+
+.savings-total-banner .balance-label {
+    color: rgba(255, 255, 255, 0.92);
+}
+
 .savings-total-banner .balance-amount {
-    color: var(--green-dark);
+    color: #fff;
+    font-size: clamp(1.75rem, 5vw, 2.15rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+}
+
+.savings-total-banner .balance-sub {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.savings-total-banner .balance-banner__icon {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+    font-size: 1.85rem;
+}
+
+.balance-banner--hero .balance-sub {
+    color: rgba(255, 255, 255, 0.88);
 }
 
 .txn-icon--savings {
@@ -3501,6 +3530,7 @@ a.sidebar-user {
 }
 
 .savings-item .txn-amount.positive {
-    color: var(--green-dark);
-    font-weight: 600;
+    color: #c44d00;
+    font-weight: 700;
+    font-size: 1.05rem;
 }

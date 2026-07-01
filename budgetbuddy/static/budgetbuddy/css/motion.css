@@ -26,9 +26,16 @@
 }
 
 /* Stagger children */
-.stagger-in > * {
+.stagger-in > *,
+.stagger-in > article {
     animation: stagger-rise var(--motion-slow) var(--motion-ease) both;
     animation-delay: calc(var(--i, 0) * 0.06s);
+}
+
+/* Inner pages — same staggered rise as dashboard */
+.bb-animate {
+    animation: dash-rise 0.65s var(--motion-ease) backwards;
+    animation-delay: calc(var(--i, 0) * 0.08s);
 }
 
 @keyframes stagger-rise {
@@ -378,6 +385,8 @@ body.is-navigating .page-wrap {
     .page-enter,
     .dash.page-enter,
     .page-inner.page-enter,
+    .bb-animate,
+    .dash-animate,
     .stagger-in > *,
     .swap-content.is-entering,
     .bb-loader__piggy,

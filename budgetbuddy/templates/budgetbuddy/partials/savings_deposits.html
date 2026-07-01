@@ -1,5 +1,5 @@
 {% for deposit in deposits %}
-<article class="transaction-item savings-item">
+<article class="transaction-item savings-item" style="--i: {{ forloop.counter }}">
     <div class="txn-icon txn-icon--savings">
         <i class="bx {% if deposit.is_period_end %}bx-calendar-check{% else %}bx-down-arrow-circle{% endif %}" aria-hidden="true"></i>
     </div>

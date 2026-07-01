@@ -19,7 +19,7 @@
     <main class="main page-main page-enter">
         {% include "budgetbuddy/partials/messages.html" %}
 
-        <section class="panel balance-banner balance-banner--hero" aria-label="Available balance">
+        <section class="panel balance-banner balance-banner--hero bb-animate" style="--i: 1" aria-label="Available balance">
             <div class="balance-banner__body">
                 <p class="balance-label">Available this {{ budget_period.short_label|lower }}</p>
                 <p class="balance-amount" id="bb-available-balance">{{ data.currency }} {{ available_balance|floatformat:0 }}</p>
@@ -29,7 +29,7 @@
 
         <form method="post" class="setup-form" id="transfer-form">
             {% csrf_token %}
-            <section class="panel setup-panel">
+            <section class="panel setup-panel bb-animate" style="--i: 2">
                 <h2 class="panel-title"><i class="bx bx-transfer-alt" aria-hidden="true"></i> Record expense</h2>
                 {% include "budgetbuddy/partials/form_errors.html" with errors=form.non_field_errors %}
 
@@ -110,7 +110,7 @@
             </section>
         </form>
 
-        <section class="panel setup-panel" aria-label="Recent movements">
+        <section class="panel setup-panel bb-animate" style="--i: 3" aria-label="Recent movements">
             <div class="panel-head-row">
                 <h2 class="panel-title"><i class="bx bx-history" aria-hidden="true"></i> Recent movements</h2>
                 <p class="panel-sub" id="transfer-txn-subtitle">{% for key, label in period_choices.items %}{% if period == key %}{{ label }}{% endif %}{% endfor %}</p>

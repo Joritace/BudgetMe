@@ -15,13 +15,13 @@
     {% include "budgetbuddy/partials/page_header.html" with icon="bx-wallet" title="Edit your budget" back_url=dashboard_url %}
     {% endif %}
 
-    <main class="main page-main">
+    <main class="main page-main page-enter">
         {% include "budgetbuddy/partials/messages.html" %}
 
         <form method="post" class="setup-form">
             {% csrf_token %}
 
-            <section class="panel setup-panel">
+            <section class="panel setup-panel bb-animate" style="--i: 1">
                 <h2 class="panel-title"><i class="bx bx-user" aria-hidden="true"></i> About you</h2>
                 {% include "budgetbuddy/partials/form_errors.html" with errors=form.non_field_errors %}
                 <div class="form-group form-group--full">
@@ -31,7 +31,7 @@
                 </div>
             </section>
 
-            <section class="panel setup-panel">
+            <section class="panel setup-panel bb-animate" style="--i: 2">
                 <h2 class="panel-title"><i class="bx bx-money" aria-hidden="true"></i> Income</h2>
                 <p class="panel-sub">Your budget tracks spending against each pay period — monthly or every 14 days.</p>
                 <div class="form-grid">
@@ -56,7 +56,7 @@
                 </ul>
             </section>
 
-            <section class="panel setup-panel">
+            <section class="panel setup-panel bb-animate" style="--i: 3">
                 <h2 class="panel-title"><i class="bx bxs-coin-stack" aria-hidden="true"></i> Saving goal</h2>
                 <div class="form-group">
                     <label for="{{ form.saving_goal_amount.id_for_label }}">{{ form.saving_goal_amount.label }}</label>
@@ -66,7 +66,7 @@
                 </div>
             </section>
 
-            <section class="panel setup-panel">
+            <section class="panel setup-panel bb-animate" style="--i: 4">
                 <div class="panel-header">
                     <div>
                         <h2 class="panel-title"><i class="bx bx-list-check" aria-hidden="true"></i> Budget categories</h2>
@@ -113,7 +113,9 @@
         </form>
 
         {% if not is_new %}
+        <div class="bb-animate" style="--i: 5">
         {% include "budgetbuddy/partials/delete_budget_panel.html" with description="Permanently removes your budget, categories, transactions, and transfers. You can set up a new budget anytime." %}
+        </div>
         {% endif %}
     </main>
 </div>
